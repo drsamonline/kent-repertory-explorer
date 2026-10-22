@@ -96,3 +96,24 @@ Requests, not conditions: please credit Dr Sohil Momin and the source of the dat
 
 A study and reference tool for practitioners and students. Not medical advice, and not a substitute
 for the judgement of a qualified practitioner.
+
+---
+
+## Built with Forge
+
+This repo is a **Forge** app and adopts the shared kits.
+
+- **Shared build workflow** — `.github/workflows/build-apps.yml` calls the reusable
+  build in [`drsamonline/app-builder`](https://github.com/drsamonline/app-builder).
+  On every push to `main` it builds a portable Windows **EXE** and a signed
+  Android **APK** and attaches them to the `app-latest` release, so these URLs
+  always track the newest build:
+
+  - `https://github.com/drsamonline/kent-repertory-explorer/releases/latest/download/kent-repertory-explorer-portable.exe`
+  - `https://github.com/drsamonline/kent-repertory-explorer/releases/latest/download/kent-repertory-explorer.apk`
+
+- **web-kit** — the shared offline-first runtime (`web-kit.js`, from
+  [`drsamonline/web-kit`](https://github.com/drsamonline/web-kit)) is vendored in
+  this repo, ready for the app to adopt on its next release.
+
+Built with [Forge](https://github.com/drsamonline/forge) by Dr Sohil Momin.
