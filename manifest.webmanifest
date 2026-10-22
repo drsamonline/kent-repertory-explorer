@@ -1,0 +1,10 @@
+{
+  "name": "Kent's Repertory Explorer",
+  "short_name": "Kent Repertory",
+  "description": "Offline, searchable Kent's Repertory (1897) with graded remedies and case repertorisation.",
+  "start_url": "./app.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#5aa9e6",
+  "icons": [{"src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+}
