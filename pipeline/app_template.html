@@ -39,7 +39,6 @@ a{color:var(--accent);text-underline-offset:2px}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
 ::-webkit-scrollbar-thumb:hover{background:var(--dim2);background-clip:padding-box}
-.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 kbd{background:var(--panel3);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font:600 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
 
@@ -102,6 +101,10 @@ main{flex:1;display:flex;min-height:0}
 .chip.narrow{border-color:color-mix(in srgb,var(--ok) 60%,transparent);color:var(--ok)}
 .chip.broad{border-color:color-mix(in srgb,var(--warn) 60%,transparent);color:var(--warn)}
 .chip.ghost{background:none}
+.chip.active{border-color:var(--accent);color:var(--text);background:color-mix(in srgb,var(--accent) 14%,transparent);gap:6px}
+.chip.active .xbtn{color:inherit}
+.toolbar.browse .searchonly{display:none}
+.mut{color:var(--dim2)}
 .act{flex:none;display:flex;gap:6px;align-items:center}
 .addbtn{padding:6px 12px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);font-size:12.5px;font-weight:550;transition:background .15s}
 .addbtn:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
@@ -273,13 +276,17 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
         <button data-tab="browse">Browse</button>
       </div>
       <div class="toolbar" id="toolbar">
-        <label title="Show only rubrics with few remedies — those are the ones that narrow a case">
-          <input type="checkbox" id="narrow"> Narrow only <span style="color:var(--dim2)">(≤</span>
+        <span id="filterchip" class="chip active" hidden>
+          <span id="filterlabel"></span>
+          <button class="xbtn" id="filterclear" title="Remove the chapter filter">✕</button>
+        </span>
+        <label class="searchonly" title="Show only rubrics with few remedies — those are the ones that narrow a case">
+          <input type="checkbox" id="narrow"> Narrow only <span class="mut">(≤</span>
           <input type="range" id="narrowN" min="3" max="30" step="1" value="8" disabled>
-          <b id="narrowV">8</b><span style="color:var(--dim2)">)</span>
+          <b id="narrowV">8</b><span class="mut">)</span>
         </label>
         <span class="sp"></span>
-        <label>Sort
+        <label class="searchonly">Sort
           <select id="sortby">
             <option value="narrow">Narrowest first</option>
             <option value="broad">Broadest first</option>
@@ -287,7 +294,7 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
             <option value="chapter">By chapter</option>
           </select>
         </label>
-        <span id="statline">loading…</span>
+        <span id="statline" role="status" aria-live="polite">loading…</span>
       </div>
       <div id="listwrap" role="region" aria-label="Rubric results"></div>
       <div id="chapters" role="region" aria-label="Chapters"></div>
@@ -350,7 +357,7 @@ let DATA=null, RUBRICS=[], REMEDIES=[], CHAPTERS=[], BYID=new Map();
 let caseList=[];                 // [{id, path, links, note}]
 let tab='search', rtab='case', narrowOnly=false, narrowN=8, sortBy='narrow', chapterFilter=null;
 let minGrade=1, coverAll=false, excluded=new Set();
-let results=[], selIdx=-1, recent=[];
+let results=[], selIdx=-1;
 
 const LS={
   get(k,d){ try{const v=localStorage.getItem('rp_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
@@ -387,7 +394,14 @@ function flatten(tree){
 }
 
 /* ---------- search ---------- */
+function showFilterChip(){
+  const c=$('#filterchip');
+  if(chapterFilter){ c.hidden=false; $('#filterlabel').textContent='Chapter: '+chapterFilter; }
+  else c.hidden=true;
+}
+
 function runSearch(){
+  showFilterChip();
   const q=$('#q').value.trim().toLowerCase();
   if(!q){ results=[]; renderList(); updateStat(0,0); return; }
   const terms=q.split(/\s+/).filter(Boolean);
@@ -513,6 +527,7 @@ function refreshRight(){
       : '<div class="empty"><span class="big">✚</span>No rubrics yet.<br>Search on the left and press <b>Add</b>.</div>';
     return;
   }
+  if(rtab==='mx'){ renderMatrix(); return; }
   const list=analyse();
   const act=active(list);
   if(!act.length){ b.innerHTML='<div class="empty">'+(n?'No remedy matches the current filters.':'Add rubrics to see the analysis.')+'</div>'; return; }
@@ -634,11 +649,15 @@ function helpHTML(){
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2400); }
 
 function setTab(t){
-  tab=t; $$('.tabs [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  tab=t;
+  $$('.tabs [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   $('#chapters').classList.toggle('show',t==='browse');
-  $('#toolbar').style.display = (t==='browse')?'none':'';
-  if(t==='browse'){ $('#listwrap').style.display='none'; renderChapters(); $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters'; }
-  else runSearch();
+  $('#toolbar').classList.toggle('browse',t==='browse');
+  if(t==='browse'){
+    $('#listwrap').style.display='none';
+    renderChapters();
+    $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters';
+  } else runSearch();
 }
 function setRTab(t){ rtab=t; $$('.tabs [data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===t)); refreshRight(); }
 function mobileTab(which){
@@ -689,6 +708,7 @@ async function boot(){
 $('#q').addEventListener('input',()=>{ $('#qclear').style.display=$('#q').value?'block':'none'; runSearch(); });
 $('#q').addEventListener('focus',()=>{ $('#qclear').style.display=$('#q').value?'block':'none'; });
 $('#qclear').onclick=()=>{ $('#q').value=''; $('#qclear').style.display='none'; chapterFilter=null; runSearch(); $('#q').focus(); };
+$('#filterclear').onclick=()=>{ chapterFilter=null; $('#q').value=''; $('#qclear').style.display='none'; runSearch(); $('#q').focus(); };
 $('#btnchapters').onclick=()=>setTab(tab==='browse'?'search':'browse');
 $('#btntheme').onclick=cycleTheme;
 $('#btnhelp').onclick=()=>openModal('Repertorium Publicum Explorer', helpHTML());

@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.0] — 2026-10-22
+### Fixed
+- **The Matrix tab showed the Analysis.** `renderMatrix()` was defined but never called — the
+  one branch that would have invoked it was missing from `refreshRight()`. Switching tabs really
+  did lose a feature. Now wired up.
+- **Browsing hid the whole toolbar**, taking the sort control, the filter and the status line with
+  it. The toolbar now stays put in Browse; only the search-only controls (sort, narrow) hide.
+- **The chapter filter was invisible.** Clicking a chapter silently restricted every later search
+  with no indication and no obvious way out. There is now a **Chapter: … ✕** chip in the toolbar
+  that shows the active filter and clears it in one click.
+### Changed
+- **Minified CSS, JS and HTML markup at build time** — 43,413 → 40,731 bytes of code (−6%). The
+  readable template stays in `pipeline/app_template.html`; only the shipped `app.html` is minified.
+  Verified by comparing 36 elements × 28 computed CSS properties against an unminified twin: no
+  differences except a focus ring and a toast mid-animation.
+### Removed
+- Dead code: the unused `recent` variable, the orphaned `.sr-only` rule, and the now-unused
+  inline `style="color:var(--dim2)"` spans (replaced by a `.mut` class).
+- The status line is now a proper `role="status" aria-live="polite"` region.
+
 ## [1.3.0] — 2026-10-22
 ### Added
 - **Polished UI**: refined type scale and spacing, richer rubric cards with highlighted matches,
