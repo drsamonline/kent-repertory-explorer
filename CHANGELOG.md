@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0] — 2026-10-22
+### Changed
+- **Licence corrected to GNU GPL v3**, and the contradiction removed. The app embeds
+  the *Repertorium Publicum* dataset, which is third-party material under **GPL v3**,
+  so the combined work is GPL v3. The previous licence claimed the repertory text was
+  public domain and that commercial use required a licence — both contradicted the
+  licence of the embedded data. GPL v3 permits commercial use and forbids adding
+  restrictions, so those clauses are gone.
+- Added the full GPL v3 text (`LICENSE-GPL-3.0.txt`).
+- README and landing page licence sections now match.
+
 ## [1.1.0] — 2026-10-22
 ### Fixed
 - **Corrected the data attribution.** The repertory was labelled "Kent's Repertory

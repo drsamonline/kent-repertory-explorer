@@ -1,30 +1,62 @@
-Kent's Repertory Explorer — Licence
+Repertorium Publicum Explorer — Licence
 Copyright (c) 2026 Dr Sohil Momin
 
-THE TEXT
-  Kent's Repertory of the Homoeopathic Materia Medica (1897) is in the public
-  domain. The repertory text in this project is public domain and may be
-  reproduced freely.
+    This work is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
 
-THE SOFTWARE
-  Permission is granted, free of charge, to any person obtaining a copy of the
-  software (the HTML application, its build pipeline and scripts) to use, copy
-  and modify it for personal study, teaching and non-commercial practice.
+    This work is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  Commercial use — including selling the software, bundling it into a paid
-  product, or offering it as part of a paid service — requires a licence from
-  the copyright holder.
+    You should have received a copy of the GNU General Public License along with
+    this work — see LICENSE-GPL-3.0.txt.  If not, see
+    <https://www.gnu.org/licenses/gpl-3.0.txt>.
 
-  Educational institutes may use it free of charge, or at a discounted rate for
-  site and institutional licences. Please get in touch.
 
-  Derivative works are welcome provided this licence is retained and the
-  original author is credited.
+WHY GPL v3
+----------
+This application embeds the *Repertorium Publicum* repertory dataset inside one
+self-contained HTML file.  That dataset is third-party material published under
+GPL v3 (see below).  Distributing it as part of a combined work means the
+combined work is distributed under GPL v3.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+GPL v3 also forbids adding further restrictions on top of it.  No clause in this
+file therefore restricts commercial use of the GPL-covered material.
+
+This corrects two errors in earlier versions of this file, which stated that the
+repertory text was public domain and that commercial use required a licence.
+Both statements contradicted the licence of the embedded data and have been
+removed.
+
+
+THE EMBEDDED DATA
+-----------------
+    Repertorium Publicum (2008)
+    Vladimir Polony — an open, Kent-derived repertory, published as part of the
+    OpenRep source code under GPL v3.
+
+    It is NOT Kent's Repertory of the Homoeopathic Materia Medica, 1897 first
+    edition.  It has its own chapter structure and its own additions.
+
+    source : https://github.com/nondeterministic/oorep
+    licence: GNU General Public License v3
+
+The source of this application — the HTML, the build pipeline and the extracted
+data — is this repository, so the corresponding source is available to anyone
+who receives a copy.
+
+
+REQUESTS (not conditions of the licence)
+----------------------------------------
+  * Please credit Dr Sohil Momin and the source of the repertory data.
+  * Teachers and institutions: a link back is welcome.
+
+These are requests.  Under GPL v3 they cannot be made conditions.
+
 
 NOT MEDICAL ADVICE
-  This is a study and reference tool. It is not medical advice and is not a
-  substitute for the judgement of a qualified practitioner.
+------------------
+This is a study and reference tool.  It is not medical advice, and it is not a
+substitute for the judgement of a qualified practitioner.

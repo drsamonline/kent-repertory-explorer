@@ -51,8 +51,15 @@ under `repertory/repertorium-publicum-2008/`.
 
 ## Licence
 
-- **App code** © Dr Sohil Momin. Free for study and practice; commercial use requires a licence; educational institutes free or at a discount.
-- **Repertory data**: **GPL v3** (Repertorium Publicum, 2008, part of the OpenRep source code) — not public domain.
+**GNU GPL v3** — for the whole work. The app embeds the *Repertorium Publicum*
+dataset, which is third-party material published under GPL v3, so the combined work
+is distributed under GPL v3. GPL v3 permits commercial use; it requires that
+derivative works stay under GPL v3 and that the source is made available.
+
+- Embedded data: *Repertorium Publicum* (2008), Vladimir Polony — GPL v3, part of the [OpenRep](https://github.com/nondeterministic/oorep) source code. Not public domain, and **not** Kent's 1897 first edition.
+- Full text: [`LICENSE`](LICENSE) · [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt)
+
+Requests, not conditions: please credit Dr Sohil Momin and the source of the data.
 
 ## Disclaimer
 
