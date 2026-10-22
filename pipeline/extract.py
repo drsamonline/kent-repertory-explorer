@@ -96,11 +96,13 @@ def main():
             s = DIG[x % 36] + s; x //= 36
         return s or '0'
 
+    emitted_rubrics = [0]
     def ser(node):
         o = {'n': node['n']}
         if node['c']:
             o['c'] = [ser(node['c'][k]) for k in sorted(node['c'])]
         if node['l']:
+            emitted_rubrics[0] += 1
             # pack (remedyIdx*4 + grade) as 3-char base36 -> ~2x smaller than JSON pairs
             o['r'] = ''.join(b36(ridx[m] * 4 + w).rjust(3, '0') for m, w in node['l'])
             o['k'] = len(node['l'])
@@ -109,18 +111,20 @@ def main():
     tree = ser(root)
     out = {
         'book': {
-            'id': 'kent-repertory-1897',
-            'title': "Repertory of the Homoeopathic Materia Medica",
-            'author': 'James Tyler Kent',
-            'year': 1897,
-            'edition': 'first edition',
-            'public_domain': True,
-            'source': 'OOReP open repertory (open-source, GPL) — repertory abbrev "publicum"',
+            'id': 'repertorium-publicum-2008',
+            'title': 'Repertorium Publicum',
+            'author': 'Vladimir Polony',
+            'year': 2008,
+            'edition': '0.5',
+            'license': 'GPL v3 - as part of the OpenRep source code',
+            'note': 'An open, Kent-derived repertory. Not Kent 1897 first edition.',
+            'source': 'OOReP open repertory database — repertory token "publicum"',
         },
         'remedies': remedy_table,
         'tree': tree,
         'counts': {
-            'rubrics': sum(1 for _ in paths),
+            'rubrics': emitted_rubrics[0],
+            'rubric_paths': sum(1 for _ in paths),
             'remedy_links': sum(len(v) for v in links.values()),
             'remedies': len(remedy_table),
         },

@@ -4,179 +4,261 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
-<title>Kent's Repertory Explorer — offline</title>
+<meta name="description" content="Offline explorer for Repertorium Publicum (2008) — an open, Kent-derived repertory. 74,480 rubrics, 735,460 graded remedy links. Search, build a case, repertorise.">
+<title>Repertorium Publicum Explorer — offline repertory</title>
 <style>
 :root{
-  --bg:#0d1117;--panel:#141a22;--panel2:#1a222c;--line:#243040;--text:#e6edf5;--dim:#8ba0b6;--dim2:#5f7488;
-  --accent:#5aa9e6;--accent2:#8b5cf6;--g1:#4b5a6b;--g2:#c98a3a;--g3:#e0574f;--ok:#3fb950;--warn:#d29922;
-  --shadow:0 8px 28px rgba(0,0,0,.45);--r:12px;
+  --bg:#0a0e14;--bg2:#0e141c;--panel:#121a24;--panel2:#18222e;--panel3:#1e2a38;
+  --line:#22303f;--line2:#2c3d50;--text:#e9eff7;--dim:#93a7bd;--dim2:#6a8098;
+  --accent:#5fa8ff;--accent2:#a78bfa;--accentInk:#04101f;
+  --g1:#7d8fa3;--g2:#e0a24a;--g3:#f2655c;--ok:#3fb950;--warn:#d6a231;
+  --shadow:0 10px 34px rgba(0,0,0,.5);--shadow2:0 2px 10px rgba(0,0,0,.3);
+  --r:12px;--r2:9px;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
 }
 body.light{
-  --bg:#f4f6f9;--panel:#ffffff;--panel2:#f0f3f7;--line:#dbe2ea;--text:#16212e;--dim:#5b6b7d;--dim2:#8695a6;
-  --accent:#1f6feb;--accent2:#7c3aed;--g1:#9aa7b4;--g2:#b45309;--g3:#b91c1c;--shadow:0 8px 28px rgba(20,40,70,.12);
+  --bg:#f6f8fb;--bg2:#eef2f7;--panel:#ffffff;--panel2:#f5f8fb;--panel3:#eaeff5;
+  --line:#dfe6ee;--line2:#ccd6e2;--text:#0f1a26;--dim:#5a6b7e;--dim2:#8595a7;
+  --accent:#1f6feb;--accent2:#7c3aed;--accentInk:#ffffff;
+  --g1:#94a3b3;--g2:#b45309;--g3:#c02626;--ok:#1a7f37;--warn:#9a6700;
+  --shadow:0 10px 34px rgba(20,40,70,.14);--shadow2:0 2px 10px rgba(20,40,70,.08);
 }
-body.hc{--bg:#000;--panel:#000;--panel2:#0a0a0a;--line:#666;--text:#fff;--dim:#ddd;--dim2:#bbb;--accent:#7fd1ff;}
+body.hc{
+  --bg:#000;--bg2:#000;--panel:#000;--panel2:#0b0b0b;--panel3:#141414;
+  --line:#777;--line2:#999;--text:#fff;--dim:#e2e2e2;--dim2:#bdbdbd;
+  --accent:#7fd1ff;--accent2:#d0a3ff;--g3:#ff8f88;--g2:#ffc46b;--g1:#cfd8e3;
+}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer;background:none;border:0}
-a{color:var(--accent)}
-.sr-only{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--sans);overflow:hidden;
+     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+a{color:var(--accent);text-underline-offset:2px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--dim2);background-clip:padding-box}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+kbd{background:var(--panel3);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font:600 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
 
 /* ---------- shell ---------- */
 #shell{display:flex;flex-direction:column;height:100vh;height:100dvh}
-header{flex:none;display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:9px;flex:none}
-.brand .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px}
-.brand h1{margin:0;font-size:15px;font-weight:650;letter-spacing:.2px;white-space:nowrap}
-.brand small{display:block;font-size:10.5px;color:var(--dim);font-weight:400}
-#qwrap{flex:1 1 260px;min-width:180px;position:relative}
-#q{width:100%;padding:9px 34px 9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);outline:none}
-#q:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
-#qclear{position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--dim);padding:4px 7px;border-radius:6px;display:none}
-#qclear:hover{background:var(--panel)}
-.hbtn{padding:8px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);white-space:nowrap}
-.hbtn:hover{border-color:var(--accent)}
-.hbtn.on{background:color-mix(in srgb,var(--accent) 20%,transparent);border-color:var(--accent)}
+header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);
+       border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,var(--accent),var(--accent2));
+       display:grid;place-items:center;font:700 17px/1 var(--serif);color:#fff;box-shadow:var(--shadow2)}
+.brand h1{margin:0;font-size:15px;font-weight:650;letter-spacing:.1px;white-space:nowrap}
+.brand small{display:block;font-size:10.5px;color:var(--dim);font-weight:450;letter-spacing:.15px}
+#qwrap{flex:1 1 280px;min-width:190px;position:relative;display:flex;align-items:center}
+#q{width:100%;padding:10px 74px 10px 36px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);
+   color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+#q:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+#qwrap .mag{position:absolute;left:12px;color:var(--dim2);pointer-events:none;font-size:13px}
+#qclear{position:absolute;right:8px;color:var(--dim);padding:4px 8px;border-radius:7px;display:none;font-size:12px}
+#qclear:hover{background:var(--panel3);color:var(--text)}
+.hbtn{padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);
+      white-space:nowrap;transition:border-color .15s,background .15s;font-size:13.5px}
+.hbtn:hover{border-color:var(--accent);background:var(--panel3)}
+.hbtn.on{background:color-mix(in srgb,var(--accent) 18%,transparent);border-color:var(--accent);color:var(--text)}
 
 main{flex:1;display:flex;min-height:0}
 #left{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
-#right{width:430px;flex:none;display:flex;flex-direction:column;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
-@media (min-width:1700px){#right{width:520px}}
+#right{width:440px;flex:none;display:flex;flex-direction:column;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
+@media (min-width:1760px){#right{width:540px}}
 
 /* ---------- tabs ---------- */
-.tabs{flex:none;display:flex;gap:2px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
-.tabs button{padding:10px 13px;color:var(--dim);border-bottom:2px solid transparent;font-weight:550}
+.tabs{flex:none;display:flex;gap:2px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{padding:11px 13px;color:var(--dim);border-bottom:2px solid transparent;font-weight:550;white-space:nowrap;transition:color .15s,border-color .15s}
+.tabs button:hover{color:var(--text)}
 .tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
-.tabs .count{display:inline-block;min-width:17px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;text-align:center}
+.count{display:inline-block;min-width:18px;padding:0 6px;margin-left:7px;border-radius:10px;background:var(--accent);color:var(--accentInk);font:600 11px/17px var(--sans);text-align:center}
+
+/* ---------- toolbar ---------- */
+.toolbar{flex:none;display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);
+         background:var(--bg2);flex-wrap:wrap;font-size:12.5px;color:var(--dim)}
+.toolbar label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.toolbar select{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:4px 7px}
+.toolbar input[type=range]{width:96px;accent-color:var(--accent)}
+.toolbar .sp{flex:1}
+.toolbar b{color:var(--text);font-weight:600}
 
 /* ---------- rubric list ---------- */
-#listwrap{flex:1;overflow:auto;padding:10px 12px 60px;min-height:0}
-.rub{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:7px;overflow:hidden}
-.rub .top{display:flex;align-items:flex-start;gap:9px;padding:9px 11px}
+#listwrap{flex:1;overflow:auto;padding:12px 14px 70px;min-height:0;scroll-behavior:smooth}
+.rub{border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);margin-bottom:8px;overflow:hidden;
+     transition:border-color .15s,box-shadow .15s}
+.rub:hover{border-color:var(--line2)}
+.rub.sel{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
+.rub .top{display:flex;align-items:flex-start;gap:10px;padding:10px 12px}
 .rub .txt{flex:1;min-width:0}
-.rub .path{font-weight:550;word-break:break-word}
-.rub .path .sep{color:var(--dim2);font-weight:400;margin:0 4px}
-.rub .meta{margin-top:3px;color:var(--dim);font-size:12px}
-.rub mark{background:color-mix(in srgb,var(--accent) 32%,transparent);color:inherit;border-radius:3px;padding:0 1px}
-.chip{display:inline-block;padding:1px 7px;border-radius:20px;border:1px solid var(--line);font-size:11px;color:var(--dim);margin-right:5px}
-.chip.narrow{border-color:var(--ok);color:var(--ok)}
-.chip.broad{border-color:var(--warn);color:var(--warn)}
-.addbtn{flex:none;padding:5px 10px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);font-size:12.5px}
+.rub .path{font-weight:550;word-break:break-word;line-height:1.5}
+.rub .path .sep{color:var(--dim2);font-weight:400;margin:0 5px;font-size:11px}
+.rub .meta{margin-top:4px;color:var(--dim);font-size:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rub mark{background:color-mix(in srgb,var(--accent) 34%,transparent);color:inherit;border-radius:3px;padding:0 2px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);
+      font-size:11px;color:var(--dim);background:var(--bg2)}
+.chip.narrow{border-color:color-mix(in srgb,var(--ok) 60%,transparent);color:var(--ok)}
+.chip.broad{border-color:color-mix(in srgb,var(--warn) 60%,transparent);color:var(--warn)}
+.chip.ghost{background:none}
+.act{flex:none;display:flex;gap:6px;align-items:center}
+.addbtn{padding:6px 12px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);font-size:12.5px;font-weight:550;transition:background .15s}
 .addbtn:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
 .addbtn.in{border-color:var(--ok);color:var(--ok)}
-.rub .rem{display:none;padding:0 11px 10px;flex-wrap:wrap;gap:5px}
+.chev{color:var(--dim2);padding:3px 5px;flex:none;transition:transform .18s;font-size:12px}
+.rub.open .chev{transform:rotate(90deg)}
+.rub .rem{display:none;padding:0 12px 12px;flex-wrap:wrap;gap:5px;border-top:1px dashed var(--line);padding-top:10px;margin-top:2px}
 .rub.open .rem{display:flex}
-.rx{font-size:12px;padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--panel2)}
+.rx{font-size:12px;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--bg2);cursor:default}
 .rx.g3{border-color:var(--g3);color:var(--g3);font-weight:700}
 .rx.g2{border-color:var(--g2);color:var(--g2);font-style:italic}
 .rx.g1{color:var(--dim)}
-.chev{color:var(--dim2);padding:2px 4px;flex:none}
+.rx:hover{border-color:var(--accent)}
 
 /* ---------- chapters ---------- */
-#chapters{flex:1;overflow:auto;padding:12px;min-height:0;display:none;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px;align-content:start}
+#chapters{flex:1;overflow:auto;padding:14px;min-height:0;display:none;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;align-content:start}
 #chapters.show{display:grid}
-.chcard{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:11px 13px;text-align:left}
-.chcard:hover{border-color:var(--accent)}
-.chcard b{display:block;font-weight:600}
-.chcard span{color:var(--dim);font-size:12px}
+.chcard{border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);padding:12px 14px;text-align:left;transition:border-color .15s,transform .12s}
+.chcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.chcard b{display:block;font-weight:600;font-size:13.5px}
+.chcard span{color:var(--dim);font-size:11.5px}
 
 /* ---------- right panel ---------- */
-.rhead{flex:none;padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rhead h2{margin:0;font-size:14px;font-weight:650;flex:1}
-.rhead .sub{color:var(--dim);font-size:12px;font-weight:400;display:block}
-#rbody{flex:1;overflow:auto;padding:12px 14px 70px;min-height:0}
-.caseitem{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;background:var(--panel2)}
+.rhead{flex:none;padding:12px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rhead h2{margin:0;font-size:14px;font-weight:650;flex:1;min-width:120px}
+.rhead .sub{color:var(--dim);font-size:11.5px;font-weight:400;display:block;margin-top:2px}
+#rbody{flex:1;overflow:auto;padding:13px 15px 80px;min-height:0}
+.caseitem{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r2);
+          margin-bottom:7px;background:var(--bg2);transition:border-color .15s}
+.caseitem:hover{border-color:var(--line2)}
+.caseitem .n{color:var(--dim2);min-width:18px;font-variant-numeric:tabular-nums;font-size:12px;padding-top:1px}
 .caseitem .t{flex:1;min-width:0;font-size:13px;word-break:break-word}
-.caseitem .del{color:var(--dim);padding:2px 6px;border-radius:6px}
-.caseitem .del:hover{color:var(--g3)}
-.empty{color:var(--dim);text-align:center;padding:26px 14px;font-size:13px}
+.caseitem .note{width:100%;margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:7px;
+                padding:5px 8px;font-size:12px;resize:vertical;min-height:30px;color:var(--text)}
+.caseitem .del{color:var(--dim);padding:3px 7px;border-radius:6px;font-size:12px}
+.caseitem .del:hover{color:var(--g3);background:var(--panel3)}
+.empty{color:var(--dim);text-align:center;padding:30px 16px;font-size:13px;line-height:1.7}
+.empty .big{font-size:26px;display:block;margin-bottom:8px;opacity:.5}
 
-/* analysis table */
 table.an{width:100%;border-collapse:collapse;font-size:12.5px}
-table.an th,table.an td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-table.an th{color:var(--dim);font-weight:550;font-size:11px;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0;background:var(--panel);z-index:2}
+table.an th,table.an td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+table.an th{color:var(--dim);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+            position:sticky;top:0;background:var(--panel);z-index:2}
 table.an td.num{text-align:right;font-variant-numeric:tabular-nums}
-table.an tr:hover td{background:var(--panel2)}
+table.an tbody tr{transition:background .12s}
+table.an tbody tr:hover td{background:var(--bg2)}
+table.an tr.excluded td{opacity:.4}
+table.an tr.excluded td:nth-child(2){text-decoration:line-through}
 .g3c{color:var(--g3);font-weight:700}
 .g2c{color:var(--g2);font-style:italic}
 .g1c{color:var(--dim)}
-.scbar{height:5px;border-radius:3px;background:var(--accent);min-width:3px}
-.excl{color:var(--dim2);text-decoration:line-through}
+.scbar{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));min-width:3px}
+.xbtn{color:var(--dim2);padding:1px 6px;border-radius:5px;font-size:12px}
+.xbtn:hover{color:var(--g3);background:var(--panel3)}
 
-/* footer bits */
-.foot{flex:none;padding:8px 14px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;background:var(--panel);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.foot{flex:none;padding:9px 15px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;background:var(--panel);
+      display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 
-/* modal */
-.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+/* ---------- modal ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(2,6,12,.7);backdrop-filter:blur(3px);display:none;align-items:center;
+          justify-content:center;z-index:60;padding:18px;animation:fade .16s ease}
+body.light .backdrop{background:rgba(30,50,80,.35)}
 .backdrop.open{display:flex}
-.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);max-width:760px;width:100%;max-height:86vh;display:flex;flex-direction:column}
-.modal .mh{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
-.modal .mh h3{margin:0;font-size:15px;flex:1}
-.modal .mb{padding:15px 16px;overflow:auto}
-.modal .mf{padding:11px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;font-size:11px;font-family:ui-monospace,monospace}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:16px;box-shadow:var(--shadow);max-width:780px;
+       width:100%;max-height:88vh;display:flex;flex-direction:column;animation:pop .18s ease}
+.modal .mh{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal .mh h3{margin:0;font-size:15px;flex:1;font-weight:650}
+.modal .mb{padding:16px 18px;overflow:auto}
+.modal .mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.modal p{margin:0 0 10px}
+.modal ul,.modal ol{margin:8px 0 12px;padding-left:20px}
+.modal li{margin:4px 0}
+.modal .k{display:flex;gap:12px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line)}
+.modal .k:last-child{border-bottom:0}
+.modal .k span{color:var(--dim);font-size:12.5px}
+.gradbox{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 
-#load{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:120;padding:20px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);background:var(--panel);
+       border:1px solid var(--line2);padding:10px 18px;border-radius:11px;box-shadow:var(--shadow);display:none;z-index:90;
+       font-size:13px;opacity:0;transition:opacity .2s,transform .2s;max-width:88vw;text-align:center}
+#toast.show{display:block;opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- loading ---------- */
+#load{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:120;padding:22px;
+      background-image:radial-gradient(60% 55% at 50% 22%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 70%)}
 #load.done{display:none}
-.lcard{text-align:center;max-width:420px}
-.lmark{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:700;color:#fff;font-size:24px}
-.ltitle{font-weight:650;font-size:16px;margin-bottom:6px}
-.lmsg{color:var(--dim);font-size:13px;min-height:20px}
-.lbar{height:5px;border-radius:3px;background:var(--panel2);margin:14px 0 12px;overflow:hidden}
-.lbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
-.lnote{color:var(--dim2);font-size:11.5px;line-height:1.6}
-#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);padding:9px 15px;border-radius:10px;box-shadow:var(--shadow);display:none;z-index:90}
+.lcard{text-align:center;max-width:460px;width:100%}
+.lmark{width:58px;height:58px;margin:0 auto 16px;border-radius:16px;background:linear-gradient(140deg,var(--accent),var(--accent2));
+       display:grid;place-items:center;font:700 27px/1 var(--serif);color:#fff;box-shadow:var(--shadow)}
+.ltitle{font:650 17px/1.3 var(--sans);margin-bottom:5px}
+.lsub{color:var(--dim);font-size:12.5px;margin-bottom:16px}
+.lmsg{color:var(--text);font-size:13px;min-height:20px;font-weight:500}
+.lbar{height:5px;border-radius:3px;background:var(--panel2);margin:15px 0 14px;overflow:hidden}
+.lbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s ease}
+.lnote{color:var(--dim2);font-size:11.5px;line-height:1.7}
+.lstats{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.lstats div{text-align:center}
+.lstats b{display:block;font:650 16px/1.2 var(--sans)}
+.lstats span{color:var(--dim2);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em}
 
 /* ---------- mobile ---------- */
 #mtabs{display:none}
 @media (max-width:900px){
   main{flex-direction:column}
   #left,#right{width:auto}
-  #right{border-left:0;border-top:1px solid var(--line);max-height:52vh}
-  #left.hide{display:none}
-  #right.hide{display:none}
+  #right{border-left:0;border-top:1px solid var(--line);max-height:54vh}
+  #left.hide,#right.hide{display:none}
   #mtabs{display:flex;flex:none;background:var(--panel);border-bottom:1px solid var(--line)}
-  #mtabs button{flex:1;padding:11px;color:var(--dim);border-bottom:2px solid transparent}
+  #mtabs button{flex:1;padding:12px;color:var(--dim);border-bottom:2px solid transparent;font-weight:550}
   #mtabs button.on{color:var(--text);border-bottom-color:var(--accent)}
-  .brand h1{font-size:13.5px}
-  .brand small{display:none}
-  header{gap:8px;padding:8px 10px}
+  header{gap:9px;padding:9px 12px}
   .brand{flex:1 1 auto}
+  .brand small{display:none}
   #qwrap{order:9;flex:1 1 100%;min-width:0}
+  #q{padding:10px 68px 10px 34px}
+  .toolbar{padding:9px 12px}
 }
-@media (max-width:420px){ .brand .mark{width:26px;height:26px} .hbtn{padding:7px 9px;font-size:12.5px} }
-/* narrow panels: drop the rank + score-bar columns so the table fits */
-@media (max-width:760px){
+@media (max-width:430px){
+  .brand .mark{width:29px;height:29px;font:700 15px/1 var(--serif)}
+  .brand h1{font-size:13.5px}
+  .hbtn{padding:8px 10px;font-size:12.5px}
+}
+@media (max-width:780px){
   table.an th:nth-child(1),table.an td:nth-child(1),
   table.an th:last-child,table.an td:last-child{display:none}
   table.an td:nth-child(2){white-space:normal;word-break:break-word}
   table.an{font-size:12px}
 }
 @media print{
-  header,#mtabs,.tabs,.foot,#left,#qclear,.addbtn,.del,.hbtn{display:none!important}
+  header,#mtabs,.tabs,.foot,#left,#qclear,.addbtn,.del,.hbtn,.toolbar,.chev,.xbtn{display:none!important}
   body,#shell{overflow:visible;height:auto;background:#fff;color:#000}
-  #right{width:100%;border:0;max-height:none}
-  #rbody{overflow:visible;padding:0}
-  table.an th,table.an td{border-color:#999}
+  #right{width:100%;border:0;max-height:none;background:#fff}
+  #rbody{overflow:visible;padding:0;min-height:0}
+  .caseitem{background:#fff;border-color:#bbb}
+  table.an th,table.an td{border-color:#999;background:#fff}
+  .scbar{background:#333}
 }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <div id="shell">
   <header>
     <div class="brand">
-      <div class="mark" aria-hidden="true">K</div>
-      <div><h1>Kent's Repertory Explorer</h1><small>Repertory of the Homoeopathic Materia Medica · 1897 · offline</small></div>
+      <div class="mark" aria-hidden="true">R</div>
+      <div><h1>Repertorium Publicum</h1><small>an open, Kent-derived repertory · 2008 · offline</small></div>
     </div>
     <div id="qwrap">
-      <input id="q" type="text" placeholder="Search rubrics — e.g. anxiety night, thirstless, weeping consolation" autocomplete="off" aria-label="Search rubrics">
-      <button id="qclear" aria-label="Clear search">✕</button>
+      <span class="mag" aria-hidden="true">⌕</span>
+      <input id="q" type="text" placeholder="Search rubrics — anxiety night · thirstless · weeping consolation" autocomplete="off" aria-label="Search rubrics" spellcheck="false">
+      <button id="qclear" aria-label="Clear search">Clear</button>
     </div>
-    <button class="hbtn" id="btnchapters" title="Browse chapters">Chapters</button>
-    <button class="hbtn" id="btnhelp" title="Help (?)">?</button>
-    <button class="hbtn" id="btntheme" title="Toggle theme">🌙</button>
+    <button class="hbtn" id="btnchapters" title="Browse the 41 chapters">Chapters</button>
+    <button class="hbtn" id="btnhelp" title="Help and shortcuts (?)">?</button>
+    <button class="hbtn" id="btntheme" title="Theme (t)">🌙</button>
   </header>
 
   <div id="mtabs">
@@ -189,25 +271,36 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2p
       <div class="tabs">
         <button data-tab="search" class="on">Search</button>
         <button data-tab="browse">Browse</button>
-        <span style="flex:1"></span>
-        <button id="btnnarrow" title="Show only narrow rubrics (few remedies)">Narrow only</button>
       </div>
-      <div id="listwrap" role="region" aria-label="Rubric results"><div class="empty" id="listempty">Type a few words — the repertory searches rubric paths, not patient language.</div></div>
-      <div id="chapters" role="region" aria-label="Chapters"></div>
-      <div class="foot">
+      <div class="toolbar" id="toolbar">
+        <label title="Show only rubrics with few remedies — those are the ones that narrow a case">
+          <input type="checkbox" id="narrow"> Narrow only <span style="color:var(--dim2)">(≤</span>
+          <input type="range" id="narrowN" min="3" max="30" step="1" value="8" disabled>
+          <b id="narrowV">8</b><span style="color:var(--dim2)">)</span>
+        </label>
+        <span class="sp"></span>
+        <label>Sort
+          <select id="sortby">
+            <option value="narrow">Narrowest first</option>
+            <option value="broad">Broadest first</option>
+            <option value="az">A → Z</option>
+            <option value="chapter">By chapter</option>
+          </select>
+        </label>
         <span id="statline">loading…</span>
-        <span style="flex:1"></span>
-        <span>Kent 1897 · public domain</span>
       </div>
+      <div id="listwrap" role="region" aria-label="Rubric results"></div>
+      <div id="chapters" role="region" aria-label="Chapters"></div>
     </section>
 
     <aside id="right" role="region" aria-label="Case and analysis">
       <div class="rhead">
-        <h2>Case <span class="sub" id="casesub">0 rubrics selected</span></h2>
+        <h2>Case <span class="sub" id="casesub">no rubrics yet</span></h2>
+        <button class="hbtn" id="btncopy" title="Copy the analysis as text">Copy</button>
         <button class="hbtn" id="btnclear">Clear</button>
         <button class="hbtn" id="btnexport">Export</button>
       </div>
-      <div class="tabs" style="padding:0 10px">
+      <div class="tabs">
         <button data-rt="case" class="on">Rubrics</button>
         <button data-rt="an">Analysis</button>
         <button data-rt="mx">Matrix</button>
@@ -215,21 +308,34 @@ kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2p
       <div id="rbody"></div>
     </aside>
   </main>
+  <div class="foot">
+    <span id="footstat">—</span>
+    <span class="sp" style="flex:1"></span>
+    <span id="srcline">Repertorium Publicum 2008 · GPL v3</span>
+  </div>
 </div>
 
 <div class="backdrop" id="bd"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
-  <div class="mh"><h3 id="mtitle">Help</h3><button class="hbtn" id="mx" aria-label="Close">✕</button></div>
+  <div class="mh"><h3 id="mtitle">Help</h3><button class="hbtn" id="mx" aria-label="Close">Close</button></div>
   <div class="mb" id="mbody"></div>
   <div class="mf" id="mfoot"></div>
 </div></div>
 <div id="toast" role="status" aria-live="polite"></div>
+
 <div id="load" role="status" aria-live="polite">
   <div class="lcard">
-    <div class="lmark">K</div>
-    <div class="ltitle">Kent's Repertory Explorer</div>
+    <div class="lmark" aria-hidden="true">R</div>
+    <div class="ltitle">Repertorium Publicum</div>
+    <div class="lsub">an open, Kent-derived repertory · 2008</div>
     <div class="lmsg" id="lmsg">Starting…</div>
     <div class="lbar"><i id="lbar"></i></div>
-    <div class="lnote">74,667 rubrics · 735,500 graded remedy links · 669 remedies<br>Everything runs on this device — nothing is uploaded.</div>
+    <div class="lnote">Everything runs on this device. Nothing you type is uploaded.</div>
+    <div class="lstats">
+      <div><b>74,480</b><span>rubrics</span></div>
+      <div><b>735,460</b><span>graded links</span></div>
+      <div><b>669</b><span>remedies</span></div>
+      <div><b>41</b><span>chapters</span></div>
+    </div>
   </div>
 </div>
 
@@ -241,16 +347,17 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 /* ---------- state ---------- */
 let DATA=null, RUBRICS=[], REMEDIES=[], CHAPTERS=[], BYID=new Map();
-let caseList=[];                 // [{id, path, links}]
-let tab='search', rtab='case', narrowOnly=false, chapterFilter=null;
+let caseList=[];                 // [{id, path, links, note}]
+let tab='search', rtab='case', narrowOnly=false, narrowN=8, sortBy='narrow', chapterFilter=null;
 let minGrade=1, coverAll=false, excluded=new Set();
-let results=[], selIdx=-1;
+let results=[], selIdx=-1, recent=[];
+
 const LS={
-  get(k,d){ try{const v=localStorage.getItem('kre_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
-  set(k,v){ try{localStorage.setItem('kre_'+k,JSON.stringify(v));}catch(e){} }
+  get(k,d){ try{const v=localStorage.getItem('rp_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{localStorage.setItem('rp_'+k,JSON.stringify(v));}catch(e){} }
 };
 
-/* ---------- load (gzip+base64 embedded) ---------- */
+/* ---------- load ---------- */
 async function loadData(){
   const b64=$('#kentdata').textContent.trim();
   const bin=atob(b64); const bytes=new Uint8Array(bin.length);
@@ -273,43 +380,47 @@ function flatten(tree){
   const out=[];
   (function walk(node, path){
     const p = node.n ? path.concat(node.n) : path;
-    if(node.r){
-      out.push({ id:out.length, path:p, r:node.r, count:node.k||0, low:p.join(' ').toLowerCase() });
-    }
+    if(node.r) out.push({ id:out.length, path:p, r:node.r, count:node.k||0, low:p.join(' ').toLowerCase() });
     for(const c of node.c||[]) walk(c,p);
   })(tree,[]);
   return out;
 }
 
-function chapterOf(r){ return r.path[0]; }
-
 /* ---------- search ---------- */
 function runSearch(){
   const q=$('#q').value.trim().toLowerCase();
-  if(!q){ results=[]; renderList(); return; }
+  if(!q){ results=[]; renderList(); updateStat(0,0); return; }
   const terms=q.split(/\s+/).filter(Boolean);
   const out=[];
   for(const r of RUBRICS){
     if(chapterFilter && r.path[0]!==chapterFilter) continue;
-    if(narrowOnly && r.count>8) continue;
+    if(narrowOnly && r.count>narrowN) continue;
     const s=r.low; let ok=true;
     for(const t of terms){ if(s.indexOf(t)<0){ ok=false; break; } }
     if(ok) out.push(r);
   }
-  out.sort((a,b)=> a.count-b.count || a.path.length-b.path.length);
+  sortResults(out);
   results=out.slice(0,400);
   selIdx=results.length?0:-1;
   renderList(terms);
-  $('#statline').textContent = out.length>results.length
-    ? `${results.length} of ${out.length} matching rubrics (narrowest first)`
-    : `${out.length} matching rubrics`;
+  updateStat(out.length, results.length);
+}
+function sortResults(a){
+  if(sortBy==='narrow') a.sort((x,y)=> x.count-y.count || x.path.length-y.path.length);
+  else if(sortBy==='broad') a.sort((x,y)=> y.count-x.count);
+  else if(sortBy==='az') a.sort((x,y)=> x.path.join(' ').localeCompare(y.path.join(' ')));
+  else a.sort((x,y)=> x.path[0].localeCompare(y.path[0]) || x.count-y.count);
+}
+function updateStat(total, shown){
+  $('#statline').innerHTML = total===0 ? ''
+    : (total>shown ? `<b>${shown}</b> of ${total} matching` : `<b>${total}</b> matching`);
 }
 
 function hl(text, terms){
   let h=esc(text);
   if(!terms) return h;
   for(const t of terms){
-    h=h.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+    try{ h=h.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'); }catch(e){}
   }
   return h;
 }
@@ -322,10 +433,11 @@ function renderList(terms){
   const wrap=$('#listwrap');
   if(tab==='browse'){ wrap.style.display='none'; return; }
   wrap.style.display='';
+  const q=$('#q').value.trim();
   if(!results.length){
-    wrap.innerHTML=$('#q').value.trim()
-      ? '<div class="empty">No rubric contains all of those words.<br>Try fewer words, or turn off “Narrow only”.</div>'
-      : '<div class="empty">Type a few words — the repertory searches rubric paths, not patient language.</div>';
+    wrap.innerHTML = q
+      ? '<div class="empty"><span class="big">∅</span>No rubric contains all of those words.<br>Try fewer words, or widen the narrow-only filter.</div>'
+      : '<div class="empty"><span class="big">⌕</span>Search in <b>repertory language</b>, not the patient\'s words.<br><span style="color:var(--dim2)">e.g. <b>anxiety night</b> · <b>thirstless</b> · <b>weeping consolation</b></span></div>';
     return;
   }
   wrap.innerHTML=results.map((r,i)=>{
@@ -336,12 +448,13 @@ function renderList(terms){
     const isin=inCase(r.id);
     const L=linksOf(r);
     const rem=L.slice(0,60).map(([ri,g])=>{
-      const R=REMEDIES[ri]; return '<span class="rx g'+g+'" title="'+esc(R[1])+'">'+esc(R[0])+'</span>';
-    }).join('') + (L.length>60?'<span class="rx g1">…'+(L.length-60)+' more</span>':'');
+      const R=REMEDIES[ri]; return '<span class="rx g'+g+'" title="'+esc(R[1])+' — grade '+g+'">'+esc(R[0])+'</span>';
+    }).join('') + (L.length>60?'<span class="rx g1">… '+(L.length-60)+' more</span>':'');
     return '<div class="rub'+(i===selIdx?' sel':'')+'" data-i="'+i+'">'
-      + '<div class="top"><button class="chev" aria-label="Show remedies">▸</button>'
-      + '<div class="txt"><div class="path">'+pathHTML(r,terms)+'</div><div class="meta">'+badge+'<span class="chip">'+esc(r.path[0])+'</span></div></div>'
-      + '<button class="addbtn'+(isin?' in':'')+'" data-add="'+r.id+'">'+(isin?'Added':'Add')+'</button></div>'
+      + '<div class="top"><button class="chev" aria-label="Show remedies">▶</button>'
+      + '<div class="txt"><div class="path">'+pathHTML(r,terms)+'</div><div class="meta">'+badge
+      + '<span class="chip ghost">'+esc(r.path[0])+'</span></div></div>'
+      + '<div class="act"><button class="addbtn'+(isin?' in':'')+'" data-add="'+r.id+'">'+(isin?'Added':'Add')+'</button></div></div>'
       + '<div class="rem">'+rem+'</div></div>';
   }).join('');
   const sel=wrap.querySelector('.rub.sel'); if(sel) sel.scrollIntoView({block:'nearest'});
@@ -356,65 +469,74 @@ function renderChapters(){
     '<button class="chcard" data-ch="'+esc(c)+'"><b>'+esc(c)+'</b><span>'+counts[c].toLocaleString()+' rubrics</span></button>').join('');
 }
 
-/* ---------- case + analysis ---------- */
+/* ---------- case ---------- */
 function addRubric(id){
   if(inCase(id)){ toast('Already in the case'); return; }
   const r=BYID.get(id);
-  caseList.push({id, path:r.path.slice(), links:linksOf(r)});
+  caseList.push({id, path:r.path.slice(), links:linksOf(r), note:''});
   saveCase(); refreshRight(); markAddButtons();
-  toast('Added: '+r.path.join(' › '));
+  toast('Added · '+r.path.join(' › '));
 }
 function removeRubric(id){ caseList=caseList.filter(c=>c.id!==id); saveCase(); refreshRight(); markAddButtons(); }
-function saveCase(){ LS.set('case',caseList.map(c=>({id:c.id,path:c.path,links:c.links}))); $('#mc').textContent=caseList.length; }
+function saveCase(){ LS.set('case',caseList); $('#mc').textContent=caseList.length; }
 
 function analyse(){
-  const rows=new Map();  // remedyIdx -> {score, cover, grades:{}}
+  const rows=new Map();
   caseList.forEach((c,ci)=>{
     for(const [ri,g] of c.links){
-      if(excluded.has(ri)) continue;
       if(g<minGrade) continue;
-      let o=rows.get(ri); if(!o){ o={ri,score:0,cover:0,g:{}}; rows.set(ri,o); }
+      let o=rows.get(ri);
+      if(!o){ o={ri,score:0,cover:0,g:{},ex:excluded.has(ri)}; rows.set(ri,o); }
       o.score+=g; o.cover++; o.g[ci]=Math.max(o.g[ci]||0,g);
     }
   });
   let list=[...rows.values()];
   if(coverAll) list=list.filter(o=>o.cover===caseList.length);
-  list.sort((a,b)=> b.score-a.score || b.cover-a.cover || a.ri-b.ri);
+  // excluded remedies stay visible (struck through) but sink to the bottom
+  list.sort((a,b)=> (a.ex?1:0)-(b.ex?1:0) || b.score-a.score || b.cover-a.cover || a.ri-b.ri);
   return list;
 }
+function active(list){ return list.filter(o=>!o.ex); }
 
 function refreshRight(){
-  $('#casesub').textContent=caseList.length+(caseList.length===1?' rubric selected':' rubrics selected');
-  $('#mc').textContent=caseList.length;
+  const n=caseList.length;
+  $('#casesub').textContent = n? n+(n===1?' rubric':' rubrics')+' selected · '+(n===1?'1':'') : 'no rubrics yet';
+  $('#mc').textContent=n;
   const b=$('#rbody');
   if(rtab==='case'){
-    b.innerHTML = caseList.length? caseList.map((c,i)=>
-      '<div class="caseitem"><span style="color:var(--dim);min-width:16px">'+(i+1)+'.</span>'
-      +'<div class="t">'+esc(c.path.join(' › '))+'</div>'
-      +'<button class="del" data-del="'+c.id+'" aria-label="Remove">✕</button></div>').join('')
-      + '<div class="empty" style="padding:14px">Switch to <b>Analysis</b> to rank remedies across these rubrics.</div>'
-      : '<div class="empty">No rubrics yet.<br>Search on the left and press <b>Add</b>.</div>';
+    b.innerHTML = n ? caseList.map((c,i)=>
+      '<div class="caseitem"><span class="n">'+(i+1)+'</span>'
+      +'<div class="t">'+esc(c.path.join(' › '))
+      +'<textarea class="note" data-note="'+c.id+'" placeholder="Note (optional) — modality, source, why it fits…" rows="1">'+esc(c.note||'')+'</textarea>'
+      +'</div><button class="del" data-del="'+c.id+'" aria-label="Remove rubric">✕</button></div>').join('')
+      + '<div class="empty" style="padding:16px">Switch to <b>Analysis</b> to rank remedies across these rubrics.</div>'
+      : '<div class="empty"><span class="big">✚</span>No rubrics yet.<br>Search on the left and press <b>Add</b>.</div>';
     return;
   }
   const list=analyse();
-  if(!list.length){ b.innerHTML='<div class="empty">'+(caseList.length?'No remedy matches the current filters.':'Add rubrics to see the analysis.')+'</div>'; return; }
-  const max=list[0].score;
-  let h='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px;align-items:center">'
-    + '<label style="font-size:12px;color:var(--dim)">min grade <select id="fg">'
-    + [1,2,3].map(g=>'<option value="'+g+'"'+(g===minGrade?' selected':'')+'>'+g+'</option>').join('')+'</select></label>'
-    + '<label style="font-size:12px;color:var(--dim)"><input type="checkbox" id="fc"'+(coverAll?' checked':'')+'> cover all '+caseList.length+'</label>'
-    + '<span style="flex:1"></span><span style="font-size:12px;color:var(--dim)">'+list.length+' remedies</span></div>';
-  h+='<table class="an"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th></tr></thead><tbody>';
-  list.slice(0,120).forEach((o,i)=>{
+  const act=active(list);
+  if(!act.length){ b.innerHTML='<div class="empty">'+(n?'No remedy matches the current filters.':'Add rubrics to see the analysis.')+'</div>'; return; }
+  const max=act[0].score;
+  let rankN=0;
+  let h='<div class="toolbar" style="border:0;background:none;padding:0 0 10px">'
+    + '<label>min grade <select id="fg">'+[1,2,3].map(g=>'<option value="'+g+'"'+(g===minGrade?' selected':'')+'>'+g+'</option>').join('')+'</select></label>'
+    + '<label><input type="checkbox" id="fc"'+(coverAll?' checked':'')+'> cover all '+n+'</label>'
+    + '<span class="sp" style="flex:1"></span><span>'+act.length+' remedies'
+    + (list.length-act.length? ' · '+excluded.size+' excluded':'')+'</span></div>';
+  h+='<table class="an"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th><th></th></tr></thead><tbody>';
+  list.slice(0,150).forEach((o,i)=>{
     const R=REMEDIES[o.ri];
-    const cov = o.cover===caseList.length ? '<span style="color:var(--ok)">'+o.cover+'/'+caseList.length+'</span>' : o.cover+'/'+caseList.length;
-    h+='<tr><td class="num">'+(i+1)+'</td>'
+    const cov = o.cover===n ? '<span style="color:var(--ok);font-weight:600">'+o.cover+'/'+n+'</span>' : o.cover+'/'+n;
+    const rank=o.ex?'·':(++rankN);
+    h+='<tr'+(o.ex?' class="excluded"':'')+'><td class="num">'+rank+'</td>'
       +'<td><b>'+esc(R[0])+'</b> <span style="color:var(--dim)">'+esc(R[1])+'</span></td>'
-      +'<td class="num">'+o.score+'</td><td class="num">'+cov+'</td>'
-      +'<td style="width:90px"><div class="scbar" style="width:'+Math.max(4,Math.round(88*o.score/max))+'px"></div></td></tr>';
+      +'<td class="num"><b>'+o.score+'</b></td><td class="num">'+cov+'</td>'
+      +'<td style="width:80px"><div class="scbar" style="width:'+Math.max(4,Math.round(78*o.score/max))+'px"></div></td>'
+      +'<td><button class="xbtn" data-ex="'+o.ri+'" title="'+(o.ex?'Include again':'Exclude this remedy')+'">'+(o.ex?'↺':'⊘')+'</button></td></tr>';
   });
   h+='</tbody></table>';
-  if(list.length>120) h+='<div class="empty">Showing the top 120 of '+list.length+' remedies — export for the full list.</div>';
+  if(list.length>150) h+='<div class="empty">Showing the top 150 of '+list.length+' — export for the full list.</div>';
+  if(excluded.size) h+='<div class="empty" style="padding:12px">Click <b>↺</b> on a struck-through remedy to bring it back.</div>';
   b.innerHTML=h;
   $('#fg').onchange=e=>{minGrade=+e.target.value;refreshRight();};
   $('#fc').onchange=e=>{coverAll=e.target.checked;refreshRight();};
@@ -423,7 +545,7 @@ function refreshRight(){
 function renderMatrix(){
   const b=$('#rbody');
   if(!caseList.length){ b.innerHTML='<div class="empty">Add rubrics to build the matrix.</div>'; return; }
-  const list=analyse().slice(0,60);
+  const list=active(analyse()).slice(0,70);
   if(!list.length){ b.innerHTML='<div class="empty">No remedy matches the current filters.</div>'; return; }
   let h='<div style="overflow:auto"><table class="an"><thead><tr><th>Remedy</th>';
   caseList.forEach((c,i)=>{ h+='<th title="'+esc(c.path.join(' › '))+'">R'+(i+1)+'</th>'; });
@@ -431,14 +553,12 @@ function renderMatrix(){
   list.forEach(o=>{
     const R=REMEDIES[o.ri];
     h+='<tr><td>'+esc(R[0])+'</td>';
-    caseList.forEach((c,i)=>{
-      const g=o.g[i]||0;
-      h+='<td class="g'+g+'c">'+(g?g:'·')+'</td>';
-    });
+    caseList.forEach((c,i)=>{ const g=o.g[i]||0; h+='<td class="g'+g+'c">'+(g?g:'·')+'</td>'; });
     h+='<td class="num"><b>'+o.score+'</b></td></tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div style="margin-top:10px;color:var(--dim);font-size:12px">Columns R1…R'+caseList.length+' are your case rubrics, in order. 3 = Kent’s strongest grade.</div>';
+  h+='<div style="margin-top:12px;color:var(--dim);font-size:12px">Columns R1…R'+caseList.length+' are your case rubrics in order. '
+   + '<span class="g3c">3</span> strongest · <span class="g2c">2</span> moderate · <span class="g1c">1</span> least.</div>';
   b.innerHTML=h;
 }
 
@@ -451,7 +571,7 @@ function markAddButtons(){
 
 /* ---------- export ---------- */
 function exportText(fmt){
-  const list=analyse();
+  const list=active(analyse());
   if(fmt==='csv'){
     let h='rank,remedy,abbrev,score,covered,'+caseList.map((c,i)=>'R'+(i+1)).join(',')+'\n';
     list.forEach((o,i)=>{ const R=REMEDIES[o.ri];
@@ -459,18 +579,20 @@ function exportText(fmt){
     return h;
   }
   if(fmt==='json') return JSON.stringify({
-    repertory:'Kent 1897', generated:new Date().toISOString(),
-    rubrics:caseList.map(c=>c.path.join(' > ')),
-    filters:{minGrade,coverAll},
-    remedies:list.map(o=>({remedy:REMEDIES[o.ri][1],abbrev:REMEDIES[o.ri][0],score:o.score,covered:o.cover,grades:caseList.map((c,i)=>o.g[i]||0)}))
+    repertory:'Repertorium Publicum (2008), Kent-derived, GPL v3',
+    generated:new Date().toISOString(),
+    rubrics:caseList.map(c=>({path:c.path.join(' > '),note:c.note||''})),
+    filters:{minGrade,coverAll,excluded:[...excluded].map(i=>REMEDIES[i][0])},
+    remedies:list.map(o=>({remedy:REMEDIES[o.ri][1],abbrev:REMEDIES[o.ri][0],score:o.score,covered:o.cover,
+                           grades:caseList.map((c,i)=>o.g[i]||0)}))
   },null,2);
-  // text
-  let t='KENT\'S REPERTORY — CASE ANALYSIS\n'+'='.repeat(46)+'\n\nRubrics ('+caseList.length+'):\n';
-  caseList.forEach((c,i)=>t+='  '+(i+1)+'. '+c.path.join(' > ')+'\n');
+  let t='REPERTORIUM PUBLICUM — CASE ANALYSIS\n'+'='.repeat(50)+'\n\nRubrics ('+caseList.length+'):\n';
+  caseList.forEach((c,i)=>{ t+='  '+(i+1)+'. '+c.path.join(' > ')+(c.note?'\n       note: '+c.note:'')+'\n'; });
   t+='\nRemedies by weighted score (grade 3+2+1):\n\n';
-  list.slice(0,60).forEach((o,i)=>{ const R=REMEDIES[o.ri];
-    t+=String(i+1).padStart(3)+'. '+R[0].padEnd(10)+' '+String(o.score).padStart(4)+'  ('+o.cover+'/'+caseList.length+')  '+R[1]+'\n'; });
-  t+='\nRepertory narrows; the materia medica decides.\nSource: Kent 1897 (public domain).\n';
+  list.slice(0,80).forEach((o,i)=>{ const R=REMEDIES[o.ri];
+    t+=String(i+1).padStart(3)+'. '+R[0].padEnd(11)+String(o.score).padStart(4)+'  ('+o.cover+'/'+caseList.length+')  '+R[1]+'\n'; });
+  t+='\nThe repertory narrows; the materia medica decides.\n'
+   + 'Source: Repertorium Publicum (2008), an open Kent-derived repertory, GPL v3.\n';
   return t;
 }
 function download(name,text,type){
@@ -480,30 +602,42 @@ function download(name,text,type){
 
 /* ---------- modal ---------- */
 function openModal(title, body, foot){
-  $('#mtitle').textContent=title; $('#mbody').innerHTML=body; $('#mfoot').innerHTML=foot||'';
+  $('#mtitle').textContent=title; $('#mbody').innerHTML=body;
+  $('#mfoot').innerHTML=foot||'<button class="hbtn" data-close>Close</button>';
   $('#bd').classList.add('open');
+  const f=$('#mfoot button'); if(f) f.focus();
 }
 function closeModal(){ $('#bd').classList.remove('open'); }
 
 function helpHTML(){
-  return '<p><b>Kent\'s Repertory</b> is a lookup table of symptoms → remedies, printed in 1897 and in the public domain. Remedies carry three grades: <span class="g3c">3 (bold)</span>, <span class="g2c">2 (italic)</span>, <span class="g1c">1 (plain)</span>.</p>'
-  +'<p style="margin-top:10px"><b>How to use it</b></p><ol style="margin:6px 0 0 18px;padding:0">'
-  +'<li>Search in <i>repertory language</i> — “anxiety night”, “thirstless”, “weeping consolation”.</li>'
-  +'<li>Prefer <b>narrow</b> rubrics. One with 250 remedies tells you almost nothing; one with 3 is gold.</li>'
+  return '<p><b>Repertorium Publicum</b> is an open, <b>Kent-derived</b> repertory — a lookup table of symptoms → remedies — published in 2008 by Vladimir Polony as part of the OpenRep source code (GPL v3). It is <b>not</b> Kent\'s 1897 first edition: it has its own chapter structure and additions.</p>'
+  +'<div class="gradbox"><span class="rx g3">grade 3 — strongest</span><span class="rx g2">grade 2 — moderate</span><span class="rx g1">grade 1 — least</span></div>'
+  +'<p><b>How to repertorise</b></p><ol>'
+  +'<li>Search in <i>repertory language</i> — <b>anxiety night</b>, <b>thirstless</b>, <b>weeping consolation</b>.</li>'
+  +'<li>Prefer <b>narrow</b> rubrics. One with 250 remedies tells you almost nothing; one with three is gold.</li>'
   +'<li><b>Add</b> the rubrics that survive to the case.</li>'
-  +'<li>Open <b>Analysis</b> to rank remedies by the sum of Kent\'s grades across your rubrics.</li>'
+  +'<li>Open <b>Analysis</b> to rank remedies by the sum of grades and how many rubrics they cover.</li>'
   +'<li>Treat the ranking as a <b>shortlist to study in the materia medica</b> — not as an answer.</li></ol>'
-  +'<p style="margin-top:10px;color:var(--dim)">Keyboard: <kbd>/</kbd> search · <kbd>Enter</kbd> add the highlighted rubric · <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Esc</kbd> close.</p>';
+  +'<p style="margin-top:14px"><b>Shortcuts</b></p>'
+  +'<div class="k"><kbd>/</kbd><span>focus the search box</span></div>'
+  +'<div class="k"><kbd>↑</kbd> <kbd>↓</kbd><span>move through results</span></div>'
+  +'<div class="k"><kbd>Enter</kbd><span>add the highlighted rubric to the case</span></div>'
+  +'<div class="k"><kbd>c</kbd><span>case rubrics</span></div>'
+  +'<div class="k"><kbd>a</kbd><span>analysis</span></div>'
+  +'<div class="k"><kbd>m</kbd><span>matrix</span></div>'
+  +'<div class="k"><kbd>t</kbd><span>toggle theme</span></div>'
+  +'<div class="k"><kbd>Esc</kbd><span>close / clear</span></div>'
+  +'<p style="margin-top:14px;color:var(--dim);font-size:12.5px">A study and reference tool — not medical advice. The repertory narrows; the materia medica decides.</p>';
 }
 
-/* ---------- boot ---------- */
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',2200); }
+/* ---------- misc ---------- */
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2400); }
 
 function setTab(t){
   tab=t; $$('.tabs [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   $('#chapters').classList.toggle('show',t==='browse');
-  $('#listwrap').style.display=(t==='browse')?'none':'';
-  if(t==='browse'){ $('#statline').textContent=CHAPTERS.length+' chapters'; renderChapters(); }
+  $('#toolbar').style.display = (t==='browse')?'none':'';
+  if(t==='browse'){ $('#listwrap').style.display='none'; renderChapters(); $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters'; }
   else runSearch();
 }
 function setRTab(t){ rtab=t; $$('.tabs [data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===t)); refreshRight(); }
@@ -512,11 +646,16 @@ function mobileTab(which){
   $('#left').classList.toggle('hide',which!=='browse');
   $('#right').classList.toggle('hide',which==='browse');
 }
-
+function themeName(){ return LS.get('theme','dark'); }
 function applyPrefs(){
-  const dark=LS.get('dark',true);
-  document.body.classList.toggle('light',!dark);
-  $('#btntheme').textContent=dark?'🌙':'☀️';
+  const th=themeName();
+  document.body.classList.toggle('light',th==='light');
+  document.body.classList.toggle('hc',th==='hc');
+  $('#btntheme').textContent = th==='dark'?'🌙':th==='light'?'☀️':'◐';
+}
+function cycleTheme(){
+  const order=['dark','light','hc']; const next=order[(order.indexOf(themeName())+1)%order.length];
+  LS.set('theme',next); applyPrefs(); toast('Theme: '+next);
 }
 
 function prog(pct,msg){ const b=$('#lbar'); if(b) b.style.width=pct+'%'; const m=$('#lmsg'); if(m&&msg) m.textContent=msg; }
@@ -527,71 +666,83 @@ async function boot(){
   prog(6,'Decoding the embedded repertory…'); await breathe();
   let d;
   try{ d=await loadData(); }
-  catch(e){ $('#load').classList.add('done'); $('#statline').textContent='Could not load the repertory data.'; openModal('Data error','<p>'+esc(e.message)+'</p>'); return; }
+  catch(e){ $('#load').classList.add('done'); openModal('Data error','<p>'+esc(e.message)+'</p>'); return; }
   prog(58,'Indexing rubrics…'); await breathe();
   DATA=d; REMEDIES=d.remedies;
   RUBRICS=flatten(d.tree);
   RUBRICS.forEach(r=>BYID.set(r.id,r));
   const c=d.counts;
   prog(86,'Building the chapter index…'); await breathe();
-  $('#statline').textContent=c.rubrics.toLocaleString()+' rubrics · '+c.remedy_links.toLocaleString()+' remedy links · '+c.remedies+' remedies';
+  const stat=c.rubrics.toLocaleString()+' rubrics · '+c.remedy_links.toLocaleString()+' graded links · '+c.remedies+' remedies';
+  $('#footstat').textContent=stat;
   renderChapters();
-  // restore case
   const saved=LS.get('case',[]);
-  if(Array.isArray(saved)) saved.forEach(c0=>{ if(BYID.has(c0.id)) caseList.push({id:c0.id,path:c0.path||BYID.get(c0.id).path,links:c0.links||linksOf(BYID.get(c0.id))}); });
+  if(Array.isArray(saved)) saved.forEach(c0=>{ const r=BYID.get(c0.id); if(r) caseList.push({id:c0.id,path:c0.path||r.path,links:c0.links||linksOf(r),note:c0.note||''}); });
   saveCase(); refreshRight();
   prog(100,'Ready'); await breathe();
   $('#load').classList.add('done');
   $('#q').focus();
+  if(!LS.get('seen',false)){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
 }
 
 /* ---------- events ---------- */
 $('#q').addEventListener('input',()=>{ $('#qclear').style.display=$('#q').value?'block':'none'; runSearch(); });
-$('#qclear').onclick=()=>{ $('#q').value=''; $('#qclear').style.display='none'; runSearch(); $('#q').focus(); };
-$('#btnchapters').onclick=()=>{ setTab(tab==='browse'?'search':'browse'); };
-$('#btntheme').onclick=()=>{ LS.set('dark',!LS.get('dark',true)); applyPrefs(); };
-$('#btnhelp').onclick=()=>openModal('Kent\'s Repertory Explorer', helpHTML(), '<button class="hbtn" id="mok">Close</button>');
-$('#btnnarrow').onclick=e=>{ narrowOnly=!narrowOnly; e.target.classList.toggle('on',narrowOnly); runSearch(); };
+$('#q').addEventListener('focus',()=>{ $('#qclear').style.display=$('#q').value?'block':'none'; });
+$('#qclear').onclick=()=>{ $('#q').value=''; $('#qclear').style.display='none'; chapterFilter=null; runSearch(); $('#q').focus(); };
+$('#btnchapters').onclick=()=>setTab(tab==='browse'?'search':'browse');
+$('#btntheme').onclick=cycleTheme;
+$('#btnhelp').onclick=()=>openModal('Repertorium Publicum Explorer', helpHTML());
 $('#mx').onclick=closeModal;
-$('#bd').addEventListener('click',e=>{ if(e.target===$('#bd')) closeModal(); });
+$('#bd').addEventListener('click',e=>{ if(e.target===$('#bd')||e.target.hasAttribute('data-close')) closeModal(); });
 $$('#mtabs button').forEach(b=>b.onclick=()=>mobileTab(b.dataset.mt));
 $$('.tabs [data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 $$('.tabs [data-rt]').forEach(b=>b.onclick=()=>setRTab(b.dataset.rt));
 
+$('#narrow').onchange=e=>{ narrowOnly=e.target.checked; $('#narrowN').disabled=!narrowOnly; runSearch(); };
+$('#narrowN').oninput=e=>{ narrowN=+e.target.value; $('#narrowV').textContent=narrowN; if(narrowOnly) runSearch(); };
+$('#sortby').onchange=e=>{ sortBy=e.target.value; runSearch(); };
+
 $('#listwrap').addEventListener('click',e=>{
   const add=e.target.closest('[data-add]');
   if(add){ e.stopPropagation(); addRubric(+add.dataset.add); return; }
-  const chev=e.target.closest('.chev');
-  const rub=e.target.closest('.rub');
-  if(chev&&rub){ rub.classList.toggle('open'); chev.textContent=rub.classList.contains('open')?'▾':'▸'; return; }
-  if(rub){ rub.classList.toggle('open'); }
+  const rub=e.target.closest('.rub'); if(rub) rub.classList.toggle('open');
 });
 $('#chapters').addEventListener('click',e=>{
   const c=e.target.closest('[data-ch]'); if(!c) return;
   chapterFilter=c.dataset.ch; $('#q').value=chapterFilter.toLowerCase();
-  setTab('search'); runSearch();
-  toast('Chapter: '+chapterFilter+' — clear the search to leave it');
+  setTab('search'); runSearch(); toast('Chapter: '+chapterFilter);
 });
-$('#rbody').addEventListener('click',e=>{ const d=e.target.closest('[data-del]'); if(d) removeRubric(+d.dataset.del); });
-$('#btnclear').onclick=()=>{ if(!caseList.length) return; caseList=[]; saveCase(); refreshRight(); markAddButtons(); toast('Case cleared'); };
+$('#rbody').addEventListener('click',e=>{
+  const d=e.target.closest('[data-del]'); if(d){ removeRubric(+d.dataset.del); return; }
+  const x=e.target.closest('[data-ex]');
+  if(x){ const ri=+x.dataset.ex; excluded.has(ri)?excluded.delete(ri):excluded.add(ri); refreshRight(); }
+});
+$('#rbody').addEventListener('input',e=>{
+  const n=e.target.closest('[data-note]'); if(!n) return;
+  const c=caseList.find(c=>c.id===+n.dataset.note); if(c){ c.note=n.value; saveCase(); }
+});
+$('#btnclear').onclick=()=>{ if(!caseList.length) return; caseList=[]; excluded.clear(); saveCase(); refreshRight(); markAddButtons(); toast('Case cleared'); };
+$('#btncopy').onclick=async()=>{
+  if(!caseList.length){ toast('Add rubrics first'); return; }
+  try{ await navigator.clipboard.writeText(exportText('text')); toast('Analysis copied to the clipboard'); }
+  catch(e){ toast('Could not copy — use Export instead'); }
+};
 $('#btnexport').onclick=()=>{
   if(!caseList.length){ toast('Add rubrics first'); return; }
   openModal('Export the analysis',
-    '<p style="color:var(--dim)">The case and its analysis, generated locally. Nothing is uploaded anywhere.</p>'
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
+    '<p style="color:var(--dim)">Generated locally on this device. Nothing is uploaded anywhere.</p>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'
     +'<button class="hbtn" data-ex="text">Plain text</button>'
     +'<button class="hbtn" data-ex="csv">CSV</button>'
     +'<button class="hbtn" data-ex="json">JSON</button>'
-    +'<button class="hbtn" data-ex="print">Print / PDF</button></div>',
-    '<button class="hbtn" id="mok">Close</button>');
+    +'<button class="hbtn" data-ex="print">Print / PDF</button></div>');
 };
-
 document.addEventListener('click',e=>{
   const ex=e.target.closest('[data-ex]'); if(!ex) return;
   const f=ex.dataset.ex;
   if(f==='print'){ closeModal(); setTimeout(()=>window.print(),150); return; }
-  const t=exportText(f);
-  download('kent-analysis.'+(f==='csv'?'csv':f==='json'?'json':'txt'), t, f==='csv'?'text/csv':f==='json'?'application/json':'text/plain');
+  download('repertorium-analysis.'+(f==='csv'?'csv':f==='json'?'json':'txt'), exportText(f),
+           f==='csv'?'text/csv':f==='json'?'application/json':'text/plain');
   toast('Downloaded');
 });
 
@@ -599,12 +750,12 @@ document.addEventListener('keydown',e=>{
   const typing=/input|textarea|select/i.test(document.activeElement.tagName);
   if(e.key==='Escape'){
     if($('#bd').classList.contains('open')){ closeModal(); return; }
-    if(typing){ $('#q').value=''; $('#qclear').style.display='none'; runSearch(); return; }
+    if(typing){ $('#q').value=''; $('#qclear').style.display='none'; chapterFilter=null; runSearch(); return; }
     return;
   }
   if(typing){
     if(e.key==='Enter'&&results.length){ e.preventDefault(); addRubric(results[Math.max(0,selIdx)].id); }
-    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    else if(e.key==='ArrowDown'||e.key==='ArrowUp'){
       e.preventDefault();
       selIdx=Math.min(results.length-1,Math.max(0,selIdx+(e.key==='ArrowDown'?1:-1)));
       renderList($('#q').value.trim().toLowerCase().split(/\s+/).filter(Boolean));
@@ -612,10 +763,11 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if(e.key==='/'){ e.preventDefault(); $('#q').focus(); }
-  else if(e.key==='?'){ openModal('Kent\'s Repertory Explorer', helpHTML(), '<button class="hbtn" id="mok">Close</button>'); }
+  else if(e.key==='?'){ openModal('Repertorium Publicum Explorer', helpHTML()); }
   else if(e.key==='c'){ mobileTab('case'); setRTab('case'); }
   else if(e.key==='a'){ mobileTab('case'); setRTab('an'); }
   else if(e.key==='m'){ mobileTab('case'); setRTab('mx'); }
+  else if(e.key==='t'){ cycleTheme(); }
 });
 
 boot();
