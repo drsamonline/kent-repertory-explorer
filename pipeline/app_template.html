@@ -102,6 +102,7 @@ main{flex:1;display:flex;min-height:0}
 .chip.broad{border-color:color-mix(in srgb,var(--warn) 60%,transparent);color:var(--warn)}
 .chip.ghost{background:none}
 .chip.active{border-color:var(--accent);color:var(--text);background:color-mix(in srgb,var(--accent) 14%,transparent);gap:6px}
+.chip.off{display:none!important}
 .chip.active .xbtn{color:inherit}
 .toolbar.browse .searchonly{display:none}
 .mut{color:var(--dim2)}
@@ -208,14 +209,18 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
 .lstats span{color:var(--dim2);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em}
 
 /* ---------- mobile ---------- */
-#mtabs{display:none}
+#mtabs{display:none;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+#mtabs::-webkit-scrollbar{display:none}
 @media (max-width:900px){
+  #left .tabs,#right .tabs{display:none}
+  #mtabs button{font-size:12.5px;padding:12px 6px}
   main{flex-direction:column}
   #left,#right{width:auto}
   #right{border-left:0;border-top:1px solid var(--line);max-height:54vh}
   #left.hide,#right.hide{display:none}
   #mtabs{display:flex;flex:none;background:var(--panel);border-bottom:1px solid var(--line)}
-  #mtabs button{flex:1;padding:12px;color:var(--dim);border-bottom:2px solid transparent;font-weight:550}
+  #mtabs button{flex:1 1 0;min-width:0;padding:12px 4px;color:var(--dim);border-bottom:2px solid transparent;
+    font-weight:550;white-space:nowrap}
   #mtabs button.on{color:var(--text);border-bottom-color:var(--accent)}
   header{gap:9px;padding:9px 12px}
   .brand{flex:1 1 auto}
@@ -228,6 +233,8 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
   .brand .mark{width:29px;height:29px;font:700 15px/1 var(--serif)}
   .brand h1{font-size:13.5px}
   .hbtn{padding:8px 10px;font-size:12.5px}
+  #mtabs button{font-size:11.5px;padding:11px 3px;letter-spacing:-.1px}
+  #mtabs .count{min-width:15px;padding:0 4px;margin-left:4px;font-size:10px}
 }
 @media (max-width:780px){
   table.an th:nth-child(1),table.an td:nth-child(1),
@@ -265,8 +272,11 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
   </header>
 
   <div id="mtabs">
-    <button data-mt="browse" class="on">Find rubrics</button>
-    <button data-mt="case">Case &amp; analysis <span class="count" id="mc">0</span></button>
+    <button data-mt="search" class="on">Search</button>
+    <button data-mt="browse">Browse</button>
+    <button data-mt="case">Case <span class="count" id="mc">0</span></button>
+    <button data-mt="an">Analysis</button>
+    <button data-mt="mx">Matrix</button>
   </div>
 
   <main>
@@ -276,7 +286,7 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
         <button data-tab="browse">Browse</button>
       </div>
       <div class="toolbar" id="toolbar">
-        <span id="filterchip" class="chip active" hidden>
+        <span id="filterchip" class="chip active off">
           <span id="filterlabel"></span>
           <button class="xbtn" id="filterclear" title="Remove the chapter filter">✕</button>
         </span>
@@ -294,7 +304,7 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
             <option value="chapter">By chapter</option>
           </select>
         </label>
-        <span id="statline" role="status" aria-live="polite">loading…</span>
+        <span id="statline" role="status" aria-live="polite"></span>
       </div>
       <div id="listwrap" role="region" aria-label="Rubric results"></div>
       <div id="chapters" role="region" aria-label="Chapters"></div>
@@ -355,7 +365,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 /* ---------- state ---------- */
 let DATA=null, RUBRICS=[], REMEDIES=[], CHAPTERS=[], BYID=new Map();
 let caseList=[];                 // [{id, path, links, note}]
-let tab='search', rtab='case', narrowOnly=false, narrowN=8, sortBy='narrow', chapterFilter=null;
+let tab='search', rtab='case', mview='search', narrowOnly=false, narrowN=8, sortBy='narrow', chapterFilter=null;
 let minGrade=1, coverAll=false, excluded=new Set();
 let results=[], selIdx=-1;
 
@@ -396,8 +406,8 @@ function flatten(tree){
 /* ---------- search ---------- */
 function showFilterChip(){
   const c=$('#filterchip');
-  if(chapterFilter){ c.hidden=false; $('#filterlabel').textContent='Chapter: '+chapterFilter; }
-  else c.hidden=true;
+  c.classList.toggle('off', !chapterFilter);
+  if(chapterFilter) $('#filterlabel').textContent='Chapter: '+chapterFilter;
 }
 
 function runSearch(){
@@ -648,8 +658,16 @@ function helpHTML(){
 /* ---------- misc ---------- */
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2400); }
 
+const isMobile=()=>window.innerWidth<=900;
+function showPanel(which){                 // desktop shows both; mobile shows one
+  if(!isMobile()){ $('#left').classList.remove('hide'); $('#right').classList.remove('hide'); return; }
+  $('#left').classList.toggle('hide', which!=='left');
+  $('#right').classList.toggle('hide', which==='left');
+}
+function syncMtabs(){ $$('#mtabs button').forEach(b=>b.classList.toggle('on', b.dataset.mt===mview)); }
+
 function setTab(t){
-  tab=t;
+  tab=t; mview=t;
   $$('.tabs [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   $('#chapters').classList.toggle('show',t==='browse');
   $('#toolbar').classList.toggle('browse',t==='browse');
@@ -658,12 +676,12 @@ function setTab(t){
     renderChapters();
     $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters';
   } else runSearch();
+  showPanel('left'); syncMtabs();
 }
-function setRTab(t){ rtab=t; $$('.tabs [data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===t)); refreshRight(); }
-function mobileTab(which){
-  $$('#mtabs button').forEach(b=>b.classList.toggle('on',b.dataset.mt===which));
-  $('#left').classList.toggle('hide',which!=='browse');
-  $('#right').classList.toggle('hide',which==='browse');
+function setRTab(t){ rtab=t; mview=t; $$('.tabs [data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===t)); refreshRight(); showPanel('right'); syncMtabs(); }
+function mobileTab(v){
+  if(v==='search'||v==='browse') setTab(v);
+  else setRTab(v);
 }
 function themeName(){ return LS.get('theme','dark'); }
 function applyPrefs(){
@@ -700,6 +718,7 @@ async function boot(){
   saveCase(); refreshRight();
   prog(100,'Ready'); await breathe();
   $('#load').classList.add('done');
+  $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters · search to begin';
   $('#q').focus();
   if(!LS.get('seen',false)){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
 }
@@ -784,9 +803,9 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='/'){ e.preventDefault(); $('#q').focus(); }
   else if(e.key==='?'){ openModal('Repertorium Publicum Explorer', helpHTML()); }
-  else if(e.key==='c'){ mobileTab('case'); setRTab('case'); }
-  else if(e.key==='a'){ mobileTab('case'); setRTab('an'); }
-  else if(e.key==='m'){ mobileTab('case'); setRTab('mx'); }
+  else if(e.key==='c'){ setRTab('case'); }
+  else if(e.key==='a'){ setRTab('an'); }
+  else if(e.key==='m'){ setRTab('mx'); }
   else if(e.key==='t'){ cycleTheme(); }
 });
 

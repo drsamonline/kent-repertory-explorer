@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.5.0] — 2026-10-22
+### Fixed
+- **Mobile had two levels of tabs, and switching the top one hid the inner strip** — so features
+  looked lost. There is now a **single strip of five tabs on mobile** (Search · Browse · Case ·
+  Analysis · Matrix); nothing is ever hidden, and every view is one tap away. Desktop keeps its
+  two panels with their own tab rows.
+- **A stray ✕ floated in the toolbar at all times.** The filter chip used the `hidden` attribute,
+  which `.chip{display:inline-flex}` overrode — so it rendered an empty ✕ when no chapter filter
+  was set. It now uses a class and is genuinely hidden.
+- **"loading…" sat in the toolbar forever** until you typed something. It now reads
+  "41 chapters · search to begin" on load.
+- **The five tabs overflowed horizontally at 320 px** (page scrolled sideways). The strip now
+  scrolls itself and the labels tighten on very small screens.
+### Changed
+- Tab state is centralised (`mview` + `showPanel`/`syncMtabs`) so the desktop panels and the
+  mobile strip can never disagree.
+- Keyboard shortcuts `c` / `a` / `m` now switch the view on mobile as well as desktop.
+
 ## [1.4.0] — 2026-10-22
 ### Fixed
 - **The Matrix tab showed the Analysis.** `renderMatrix()` was defined but never called — the

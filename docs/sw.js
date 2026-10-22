@@ -1,5 +1,5 @@
 /* Kent's Repertory Explorer — offline cache. Network-first for HTML so updates land. */
-const VERSION = 'kre-v3';
+const VERSION = 'kre-v4';
 const CORE = ['./', './app.html', './index.html', './manifest.webmanifest', './assets/icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE).catch(() => {})).then(() => self.skipWaiting()));
