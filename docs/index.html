@@ -1,84 +1,284 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Repertorium Publicum Explorer — an open Kent-derived repertory, offline</title>
-<meta name="description" content="Search Repertorium Publicum (2008), an open Kent-derived repertory, offline. 74,480 rubrics, 735,460 graded remedy links. Build a case and repertorise by grade.">
-<link rel="icon" href="assets/icon.svg"><link rel="manifest" href="manifest.webmanifest">
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Repertorium Publicum Explorer — an open, Kent-derived repertory, offline</title>
+<meta name="description" content="Search Repertorium Publicum (2008), an open Kent-derived repertory, entirely offline. 74,480 rubrics, 735,460 graded remedy links, 669 remedies. Build a case and repertorise by grade. No server, no account.">
+<meta name="theme-color" content="#0a0e14">
+<meta property="og:title" content="Repertorium Publicum Explorer">
+<meta property="og:description" content="An open, Kent-derived repertory — 74,480 rubrics and 735,460 graded remedy links, searchable and offline.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
-:root{--bg:#0d1117;--panel:#141a22;--line:#243040;--text:#e6edf5;--dim:#8ba0b6;--accent:#5aa9e6;--accent2:#8b5cf6;--r:14px}
+:root{
+  --bg:#0a0e14;--bg2:#0e141c;--panel:#121a24;--panel2:#18222e;--line:#22303f;--line2:#2c3d50;
+  --text:#e9eff7;--dim:#93a7bd;--dim2:#6a8098;--accent:#5fa8ff;--accent2:#a78bfa;
+  --g1:#7d8fa3;--g2:#e0a24a;--g3:#f2655c;--ok:#3fb950;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --r:16px;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.wrap{max-width:960px;margin:0 auto;padding:0 20px}
-header{padding:26px 0 10px;display:flex;align-items:center;gap:12px}
-.mark{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:700;color:#fff;font-size:21px;font-family:Georgia,serif}
-h1{font-size:20px;margin:0;font-weight:650}
-header small{display:block;color:var(--dim);font-size:13px}
-.hero{padding:34px 0 8px}
-.hero h2{font-size:clamp(27px,5vw,44px);line-height:1.15;margin:0 0 14px;font-weight:700;letter-spacing:-.5px}
-.hero p{font-size:17px;color:var(--dim);max-width:62ch;margin:0 0 22px}
-.cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:34px}
-.btn{display:inline-block;padding:13px 22px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;text-decoration:none;font-weight:600}
-.btn.ghost{background:none;border:1px solid var(--line);color:var(--text)}
-.btn:hover{filter:brightness(1.08)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:26px 0}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
-.card h3{margin:0 0 7px;font-size:15px}
-.card p{margin:0;color:var(--dim);font-size:14px}
-.stats{display:flex;gap:26px;flex-wrap:wrap;margin:30px 0;padding:20px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
-.stat b{display:block;font-size:25px;font-weight:700}
-.stat span{color:var(--dim);font-size:13px}
-.grade{display:inline-block;padding:2px 9px;border-radius:6px;border:1px solid var(--line);margin-right:6px;font-size:13px}
-.g3{color:#e0574f;border-color:#e0574f;font-weight:700}
-.g2{color:#c98a3a;border-color:#c98a3a;font-style:italic}
-h2.sec{font-size:20px;margin:38px 0 12px}
-ol,ul{color:var(--dim)}
-li{margin:5px 0}
-footer{margin-top:44px;padding:22px 0 40px;border-top:1px solid var(--line);color:var(--dim);font-size:13.5px}
-a{color:var(--accent)}
-code{background:var(--panel);padding:1px 6px;border-radius:5px;font-size:13.5px}
-</style></head><body>
-<div class="wrap">
-<header><div class="mark">K</div><div><h1>Repertorium Publicum Explorer</h1><small>an open, Kent-derived repertory · 2008 · offline</small></div></header>
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:2px}
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+.mono{font-variant-numeric:tabular-nums}
 
-<section class="hero">
-<h2>A repertory in your pocket — searchable, graded, and entirely offline.</h2>
-<p><b>Repertorium Publicum</b> (2008) — an open, Kent-derived repertory: 74,480 rubrics and 735,460 graded remedy links. Search it, build a case, and rank remedies by grade. No server, no account, no internet connection required.</p>
-<div class="cta">
-  <a class="btn" href="play/">Open the repertory</a>
-  <a class="btn ghost" href="https://github.com/drsamonline/kent-repertory-explorer">Source &amp; licence on GitHub</a>
-</div>
+/* nav */
+nav{position:sticky;top:0;z-index:20;background:rgba(10,14,20,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .in{max-width:1060px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:12px}
+nav .mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(140deg,var(--accent),var(--accent2));display:grid;place-items:center;font:700 16px/1 var(--serif);color:#fff}
+nav b{font-weight:650;font-size:14.5px;letter-spacing:.1px}
+nav .sp{flex:1}
+nav a.lnk{color:var(--dim);text-decoration:none;font-size:14px;padding:6px 10px;border-radius:8px}
+nav a.lnk:hover{color:var(--text);background:var(--panel2)}
+@media(max-width:720px){nav a.lnk{display:none}}
+
+/* hero */
+header.hero{padding:74px 0 54px;position:relative;overflow:hidden}
+header.hero:before{content:"";position:absolute;inset:-40% 30% 40% -10%;background:radial-gradient(closest-side,rgba(95,168,255,.20),transparent);pointer-events:none}
+header.hero:after{content:"";position:absolute;inset:10% -20% -30% 45%;background:radial-gradient(closest-side,rgba(167,139,250,.16),transparent);pointer-events:none}
+.hero .in{position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 13px;margin-bottom:22px;background:var(--panel)}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--ok);display:block}
+h1{font:700 clamp(32px,5.4vw,54px)/1.1 var(--serif);letter-spacing:-.6px;margin:0 0 18px;max-width:20ch}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:clamp(16px,1.6vw,19px);color:var(--dim);max-width:60ch;margin:0 0 30px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 24px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+     color:#06121f;text-decoration:none;font-weight:650;font-size:15px;box-shadow:0 8px 24px rgba(95,168,255,.22);transition:transform .14s,filter .14s}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn.ghost{background:none;border:1px solid var(--line2);color:var(--text);box-shadow:none}
+.btn.ghost:hover{border-color:var(--accent);background:var(--panel2)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);
+       border-radius:var(--r);overflow:hidden;margin:46px 0 0}
+.stat{background:var(--panel);padding:22px 20px}
+.stat b{display:block;font:700 26px/1.15 var(--sans);letter-spacing:-.5px}
+.stat span{color:var(--dim);font-size:12.5px;text-transform:uppercase;letter-spacing:.07em}
+
+/* sections */
+section{padding:56px 0}
+h2{font:700 clamp(23px,3vw,31px)/1.2 var(--serif);letter-spacing:-.3px;margin:0 0 12px}
+.sub{color:var(--dim);max-width:64ch;margin:0 0 32px;font-size:16.5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--line2);transform:translateY(-2px)}
+.card .ic{width:38px;height:38px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;margin-bottom:14px}
+.card .ic svg{width:19px;height:19px;stroke:var(--accent);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.card h3{margin:0 0 7px;font-size:16px;font-weight:650}
+.card p{margin:0;color:var(--dim);font-size:14.5px;line-height:1.65}
+
+/* steps */
+ol.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:14px}
+ol.steps li{counter-increment:s;display:flex;gap:16px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+ol.steps li:before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:linear-gradient(140deg,var(--accent),var(--accent2));
+  color:#06121f;font-weight:700;font-size:14px;display:grid;place-items:center}
+ol.steps b{display:block;font-size:15.5px;margin-bottom:3px}
+ol.steps span{color:var(--dim);font-size:14.5px}
+
+/* grades */
+.grades{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.grade{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.grade .n{font:700 30px/1 var(--serif);margin-bottom:8px}
+.grade.g3 .n{color:var(--g3)}.grade.g2 .n{color:var(--g2)}.grade.g1 .n{color:var(--g1)}
+.grade h4{margin:0 0 6px;font-size:15px}
+.grade p{margin:0;color:var(--dim);font-size:14px}
+.grade .tag{font-size:12px;color:var(--dim2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;display:block}
+
+/* note */
+.note{border:1px solid var(--line2);border-left:3px solid var(--accent);border-radius:12px;background:var(--panel);padding:18px 22px;margin:0 0 28px}
+.note p{margin:0;color:var(--dim);font-size:15px}
+.note b{color:var(--text)}
+
+/* faq */
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0;margin-bottom:10px;overflow:hidden}
+details[open]{border-color:var(--line2)}
+summary{cursor:pointer;padding:16px 20px;font-weight:600;font-size:15.5px;list-style:none;display:flex;align-items:center;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary:after{content:"+";margin-left:auto;color:var(--dim);font-weight:400;font-size:19px}
+details[open] summary:after{content:"−"}
+details .a{padding:0 20px 18px;color:var(--dim);font-size:15px}
+details .a p{margin:0 0 10px}
+details .a p:last-child{margin:0}
+
+/* dl */
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.dl a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;text-decoration:none;color:var(--text);transition:border-color .15s}
+.dl a:hover{border-color:var(--accent)}
+.dl b{display:block;font-size:15px;margin-bottom:4px}
+.dl span{color:var(--dim);font-size:13.5px}
+
+footer{border-top:1px solid var(--line);padding:40px 0 60px;color:var(--dim);font-size:14px}
+footer .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:26px;margin-bottom:30px}
+footer h5{margin:0 0 10px;font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim2)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li{margin:6px 0}
+footer a{color:var(--dim);text-decoration:none}
+footer a:hover{color:var(--accent)}
+.fine{color:var(--dim2);font-size:13px;border-top:1px solid var(--line);padding-top:22px}
+code{background:var(--panel2);border:1px solid var(--line);padding:1.5px 7px;border-radius:6px;font-size:13.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+
+<nav><div class="in">
+  <div class="mark" aria-hidden="true">R</div>
+  <b>Repertorium Publicum Explorer</b>
+  <span class="sp"></span>
+  <a class="lnk" href="#features">Features</a>
+  <a class="lnk" href="#how">How to use</a>
+  <a class="lnk" href="#faq">FAQ</a>
+  <a class="lnk" href="#licence">Licence</a>
+  <a class="btn" href="play/" style="padding:9px 16px;font-size:14px">Open the repertory</a>
+</div></nav>
+
+<header class="hero"><div class="wrap in">
+  <span class="eyebrow"><i></i> Works offline · no server · no account</span>
+  <h1>A repertory you can actually <em>search</em> — on your own device.</h1>
+  <p class="lede">Repertorium Publicum is an open, <b>Kent-derived</b> repertory: 74,480 rubrics and 735,460 graded remedy links. Search it, collect the rubrics that fit a case, and rank remedies by grade — with no internet connection at any point.</p>
+  <div class="cta">
+    <a class="btn" href="play/">Open the repertory →</a>
+    <a class="btn ghost" href="https://github.com/drsamonline/kent-repertory-explorer">Source &amp; licence</a>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b class="mono">74,480</b><span>rubrics</span></div>
+    <div class="stat"><b class="mono">735,460</b><span>graded links</span></div>
+    <div class="stat"><b class="mono">669</b><span>remedies</span></div>
+    <div class="stat"><b class="mono">41</b><span>chapters</span></div>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+<section id="features">
+  <h2>What it does</h2>
+  <p class="sub">Built for the way repertorisation actually works: find the narrow rubric, keep it, discard the rest, and let the materia medica decide.</p>
+  <div class="grid">
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></div>
+      <h3>Search in repertory language</h3>
+      <p>Type <code>anxiety night</code> or <code>thirstless</code> and get the exact rubrics. Results are ranked <b>narrowest first</b> — the rubrics with three remedies are the ones that narrow a case.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+      <h3>Every grade preserved</h3>
+      <p>Each remedy keeps its printed grade — <b>3</b> strongest, <i>2</i> moderate, 1 least — so one narrow grade-3 rubric can outrank a remedy scattered across five broad ones.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+      <h3>Case &amp; repertorisation</h3>
+      <p>Add the rubrics that survive. The analysis ranks remedies by the sum of grades and how many rubrics they cover, and you can exclude a remedy to see who is next.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div>
+      <h3>Remedy × rubric matrix</h3>
+      <p>See the whole case at a glance: which remedy scores what, in which rubric, at which grade.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></div>
+      <h3>Export and print</h3>
+      <p>Plain text, CSV, JSON, or a clean print/PDF sheet — with your own notes on each rubric. Everything is generated locally.</p>
+    </div>
+    <div class="card">
+      <div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></svg></div>
+      <h3>Genuinely offline</h3>
+      <p>One self-contained HTML file. Save it, open it on a plane, install it as an app. Nothing you type leaves the device.</p>
+    </div>
+  </div>
 </section>
 
-<div class="stats">
-  <div class="stat"><b>74,480</b><span>rubrics</span></div>
-  <div class="stat"><b>735,460</b><span>graded remedy links</span></div>
-  <div class="stat"><b>669</b><span>remedies</span></div>
-  <div class="stat"><b>41</b><span>chapters</span></div>
+<section id="how">
+  <h2>How to repertorise with it</h2>
+  <p class="sub">Five steps, and the fifth one matters most.</p>
+  <ol class="steps">
+    <li><div><b>Search in repertory language</b><span>A patient says “anxious at night and can’t sleep”. The repertory says <code>anxiety night</code>.</span></div></li>
+    <li><div><b>Prefer narrow rubrics</b><span>A rubric with 250 remedies tells you almost nothing. One with three is gold. Turn on <b>Narrow only</b> to see them.</span></div></li>
+    <li><div><b>Add what survives</b><span>Collect the rubrics that genuinely describe this patient — not every one that half-fits.</span></div></li>
+    <li><div><b>Read the analysis</b><span>Remedies ranked by the sum of grades, and by how many of your rubrics each one covers.</span></div></li>
+    <li><div><b>Then open the materia medica</b><span>The ranking is a shortlist to study, not an answer. The repertory narrows; the materia medica decides.</span></div></li>
+  </ol>
+</section>
+
+<section id="grades">
+  <h2>What the grades mean</h2>
+  <p class="sub">Grades come from the typography of the printed repertory and are preserved here for every one of the 735,460 links.</p>
+  <div class="grades">
+    <div class="grade g3"><span class="tag">Strongest</span><div class="n">3</div><h4>71,582 links</h4><p>A strongly and repeatedly confirmed association. One narrow grade-3 rubric can outweigh several broad grade-1 ones.</p></div>
+    <div class="grade g2"><span class="tag">Moderate</span><div class="n">2</div><h4>198,591 links</h4><p>A moderate association — useful, but not on its own decisive.</p></div>
+    <div class="grade g1"><span class="tag">Least</span><div class="n">1</div><h4>465,287 links</h4><p>The remedy appears in the rubric with the least weight. Adding up raw appearances alone produces the most generic remedy in the materia medica.</p></div>
+  </div>
+</section>
+
+<section id="about">
+  <h2>What this text is — precisely</h2>
+  <div class="note">
+    <p><b>Repertorium Publicum (2008)</b> by Vladimir Polony — an open, <b>Kent-derived</b> repertory published as part of the <a href="https://github.com/nondeterministic/oorep">OpenRep</a> source code.</p>
+  </div>
+  <p class="sub" style="margin-bottom:16px">It is <b>not</b> Kent’s <i>Repertory of the Homoeopathic Materia Medica</i>, 1897 first edition. It has its own chapter structure — separate <i>Clinical</i>, <i>Appetite</i>, <i>Blood</i> and <i>Heart &amp; Circulation</i> chapters, which Kent does not have — and its own additions.</p>
+  <p class="sub">The dataset is licensed <b>GPL v3</b>, not public domain, and the app is distributed under GPL v3 because it embeds that data. Kent’s original 1897 text is public domain; this compilation is not.</p>
+</section>
+
+<section id="faq">
+  <h2>Questions</h2>
+  <details><summary>Do I need an internet connection?</summary><div class="a"><p>No. The whole repertory is embedded in a single HTML file and decompressed in your browser. Open it once, and it works on a plane, in a clinic with no signal, or from a USB stick.</p></div></details>
+  <details><summary>Is this Kent’s Repertory?</summary><div class="a"><p>It is <b>Kent-derived</b> — the rubric structure, the language and the grading all follow Kent — but it is <i>Repertorium Publicum</i> (2008), an open repertory with its own chapter structure and additions. If you need the 1897 first edition specifically, cite the edition and use a source that states it.</p></div></details>
+  <details><summary>Does my case data go anywhere?</summary><div class="a"><p>No. There is no server, no account and no network request. Your case is kept in your browser’s local storage on that device, and exports are generated locally as files you control.</p></div></details>
+  <details><summary>Can I use it commercially?</summary><div class="a"><p>The app and its embedded data are under <b>GPL v3</b>, which permits commercial use. It requires that derivative works also be licensed under GPL v3 and that the source is made available. See the <a href="https://github.com/drsamonline/kent-repertory-explorer">repository</a>.</p></div></details>
+  <details><summary>Is this medical advice?</summary><div class="a"><p>No. It is a study and reference tool for practitioners and students, and not a substitute for the judgement of a qualified practitioner.</p></div></details>
+</section>
+
+<section id="dl">
+  <h2>Get it</h2>
+  <p class="sub">The app is one self-contained HTML file — no installer required.</p>
+  <div class="dl">
+    <a href="play/"><b>Open in the browser →</b><span>Runs immediately, works offline after the first load.</span></a>
+    <a href="https://github.com/drsamonline/kent-repertory-explorer"><b>Source on GitHub →</b><span>Single file, build pipeline, licence, issues.</span></a>
+  </div>
+</section>
+
 </div>
 
-<div class="grid">
-  <div class="card"><h3>Search in repertory language</h3><p>“thirstless”, “anxiety night”, “weeping consolation”. Narrowest rubrics are listed first — those are the ones that narrow a case.</p></div>
-  <div class="card"><h3>Three grades</h3><p><span class="grade g3">3</span><span class="grade g2">2</span><span class="grade g1">1</span><br>Every remedy link carries a grade — the strongest associations first.</p></div>
-  <div class="card"><h3>Case &amp; repertorisation</h3><p>Add the rubrics that survive, then rank remedies by the sum of grades and how many rubrics they cover.</p></div>
-  <div class="card"><h3>Works offline</h3><p>One self-contained file. Installable as an app. Nothing you type ever leaves the device.</p></div>
-</div>
+<footer><div class="wrap">
+  <div class="cols">
+    <div>
+      <h5>Repertorium Publicum Explorer</h5>
+      <ul>
+        <li><a href="play/">Open the app</a></li>
+        <li><a href="#how">How to repertorise</a></li>
+        <li><a href="#faq">Questions</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Data</h5>
+      <ul>
+        <li>Repertorium Publicum (2008)</li>
+        <li>Vladimir Polony</li>
+        <li><a href="https://github.com/nondeterministic/oorep">OpenRep / OOReP source</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Licence</h5>
+      <ul>
+        <li><a href="https://github.com/drsamonline/kent-repertory-explorer/blob/main/LICENSE">GNU GPL v3</a></li>
+        <li><a href="https://github.com/drsamonline/kent-repertory-explorer/blob/main/LICENSE-GPL-3.0.txt">Full GPL v3 text</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Author</h5>
+      <ul>
+        <li>Dr Sohil Momin</li>
+        <li><a href="https://github.com/drsamonline">github.com/drsamonline</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="fine">A study and reference tool for practitioners and students — not medical advice, and not a substitute for the judgement of a qualified practitioner. The app embeds the Repertorium Publicum dataset, which is published under GPL v3; the combined work is therefore distributed under GPL v3.</p>
+</div></footer>
 
-<h2 class="sec">How to use it</h2>
-<ol>
-  <li>Search in <b>repertory language</b>, not the patient's words.</li>
-  <li>Prefer <b>narrow</b> rubrics. One with 250 remedies tells you little; one with three is gold.</li>
-  <li><b>Add</b> the rubrics that survive to your case.</li>
-  <li>Open <b>Analysis</b> to rank remedies across them.</li>
-  <li>Treat the ranking as a <b>shortlist to study in the materia medica</b> — the repertory narrows, the materia medica decides.</li>
-</ol>
-
-<h2 class="sec">About the text</h2>
-<p style="color:var(--dim)">This is <b>Repertorium Publicum</b> (2008) by Vladimir Polony, an open, <b>Kent-derived</b> repertory published as part of the <a href="https://github.com/nondeterministic/oorep">OpenRep</a> source code. It is <b>not</b> Kent's 1897 first edition — it has its own chapter structure (separate <i>Clinical</i>, <i>Appetite</i>, <i>Blood</i> and <i>Heart &amp; Circulation</i> chapters) and its own additions. The data is licensed <b>GPL v3</b>. Embedded whole in a single HTML file. A study and reference tool for practitioners and students — not medical advice, and not a substitute for a qualified practitioner.</p>
-
-<footer>
-<p>Built by <b>Dr Sohil Momin</b> · <a href="https://github.com/drsamonline">github.com/drsamonline</a></p>
-<p><b>Licence: GNU GPL v3.</b> The app embeds the <i>Repertorium Publicum</i> dataset, which is published under GPL v3, so the combined work is GPL v3 — commercial use permitted, derivative works must stay GPL v3, source available. Data: Repertorium Publicum (2008), Vladimir Polony, via <a href="https://github.com/nondeterministic/oorep">OpenRep</a>.</p>
-</footer>
-</div>
 <script>if('serviceWorker' in navigator && location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
 </body></html>

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.3.0] — 2026-10-22
+### Added
+- **Polished UI**: refined type scale and spacing, richer rubric cards with highlighted matches,
+  hover/focus states, smoother transitions, and a proper three-step loading screen.
+- **Sort options** — narrowest / broadest / A–Z / by chapter.
+- **Narrow-only with an adjustable threshold** instead of a fixed cut-off.
+- **Per-rubric notes** in the case, saved with the case and included in every export.
+- **Exclude a remedy** from the analysis — it stays visible, struck through and sorted last, with a
+  ↺ button to bring it back. Excluded remedies are kept out of the exports.
+- **Copy to clipboard** for the analysis, alongside text / CSV / JSON / print.
+- **Three themes** — dark, light and high-contrast — cycled with the header button or `t`.
+- **Welcome screen** on first visit, and a fuller help panel with the shortcut list.
+- Honest empty states, and the footer now reports the true dataset counts.
+- **New landing page**: hero, stats, features, five-step how-to, a grades explainer, the
+  precise provenance note, FAQ and licence.
+### Fixed
+- The header/footer counts no longer disagree with the indexed data (74,480 rubrics / 735,460 links).
+- The footer now sits at the foot of the layout on phones instead of mid-page.
+
 ## [1.2.0] — 2026-10-22
 ### Changed
 - **Licence corrected to GNU GPL v3**, and the contradiction removed. The app embeds
