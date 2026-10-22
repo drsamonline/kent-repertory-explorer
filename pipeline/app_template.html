@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Kent's Repertory Explorer — offline</title>
+<style>
+:root{
+  --bg:#0d1117;--panel:#141a22;--panel2:#1a222c;--line:#243040;--text:#e6edf5;--dim:#8ba0b6;--dim2:#5f7488;
+  --accent:#5aa9e6;--accent2:#8b5cf6;--g1:#4b5a6b;--g2:#c98a3a;--g3:#e0574f;--ok:#3fb950;--warn:#d29922;
+  --shadow:0 8px 28px rgba(0,0,0,.45);--r:12px;
+}
+body.light{
+  --bg:#f4f6f9;--panel:#ffffff;--panel2:#f0f3f7;--line:#dbe2ea;--text:#16212e;--dim:#5b6b7d;--dim2:#8695a6;
+  --accent:#1f6feb;--accent2:#7c3aed;--g1:#9aa7b4;--g2:#b45309;--g3:#b91c1c;--shadow:0 8px 28px rgba(20,40,70,.12);
+}
+body.hc{--bg:#000;--panel:#000;--panel2:#0a0a0a;--line:#666;--text:#fff;--dim:#ddd;--dim2:#bbb;--accent:#7fd1ff;}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+a{color:var(--accent)}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+
+/* ---------- shell ---------- */
+#shell{display:flex;flex-direction:column;height:100vh;height:100dvh}
+header{flex:none;display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px;flex:none}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:700;color:#fff;font-size:15px}
+.brand h1{margin:0;font-size:15px;font-weight:650;letter-spacing:.2px;white-space:nowrap}
+.brand small{display:block;font-size:10.5px;color:var(--dim);font-weight:400}
+#qwrap{flex:1 1 260px;min-width:180px;position:relative}
+#q{width:100%;padding:9px 34px 9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);outline:none}
+#q:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+#qclear{position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--dim);padding:4px 7px;border-radius:6px;display:none}
+#qclear:hover{background:var(--panel)}
+.hbtn{padding:8px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--text);white-space:nowrap}
+.hbtn:hover{border-color:var(--accent)}
+.hbtn.on{background:color-mix(in srgb,var(--accent) 20%,transparent);border-color:var(--accent)}
+
+main{flex:1;display:flex;min-height:0}
+#left{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+#right{width:430px;flex:none;display:flex;flex-direction:column;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
+@media (min-width:1700px){#right{width:520px}}
+
+/* ---------- tabs ---------- */
+.tabs{flex:none;display:flex;gap:2px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs button{padding:10px 13px;color:var(--dim);border-bottom:2px solid transparent;font-weight:550}
+.tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+.tabs .count{display:inline-block;min-width:17px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;text-align:center}
+
+/* ---------- rubric list ---------- */
+#listwrap{flex:1;overflow:auto;padding:10px 12px 60px;min-height:0}
+.rub{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:7px;overflow:hidden}
+.rub .top{display:flex;align-items:flex-start;gap:9px;padding:9px 11px}
+.rub .txt{flex:1;min-width:0}
+.rub .path{font-weight:550;word-break:break-word}
+.rub .path .sep{color:var(--dim2);font-weight:400;margin:0 4px}
+.rub .meta{margin-top:3px;color:var(--dim);font-size:12px}
+.rub mark{background:color-mix(in srgb,var(--accent) 32%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+.chip{display:inline-block;padding:1px 7px;border-radius:20px;border:1px solid var(--line);font-size:11px;color:var(--dim);margin-right:5px}
+.chip.narrow{border-color:var(--ok);color:var(--ok)}
+.chip.broad{border-color:var(--warn);color:var(--warn)}
+.addbtn{flex:none;padding:5px 10px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);font-size:12.5px}
+.addbtn:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.addbtn.in{border-color:var(--ok);color:var(--ok)}
+.rub .rem{display:none;padding:0 11px 10px;flex-wrap:wrap;gap:5px}
+.rub.open .rem{display:flex}
+.rx{font-size:12px;padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:var(--panel2)}
+.rx.g3{border-color:var(--g3);color:var(--g3);font-weight:700}
+.rx.g2{border-color:var(--g2);color:var(--g2);font-style:italic}
+.rx.g1{color:var(--dim)}
+.chev{color:var(--dim2);padding:2px 4px;flex:none}
+
+/* ---------- chapters ---------- */
+#chapters{flex:1;overflow:auto;padding:12px;min-height:0;display:none;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px;align-content:start}
+#chapters.show{display:grid}
+.chcard{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:11px 13px;text-align:left}
+.chcard:hover{border-color:var(--accent)}
+.chcard b{display:block;font-weight:600}
+.chcard span{color:var(--dim);font-size:12px}
+
+/* ---------- right panel ---------- */
+.rhead{flex:none;padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rhead h2{margin:0;font-size:14px;font-weight:650;flex:1}
+.rhead .sub{color:var(--dim);font-size:12px;font-weight:400;display:block}
+#rbody{flex:1;overflow:auto;padding:12px 14px 70px;min-height:0}
+.caseitem{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;background:var(--panel2)}
+.caseitem .t{flex:1;min-width:0;font-size:13px;word-break:break-word}
+.caseitem .del{color:var(--dim);padding:2px 6px;border-radius:6px}
+.caseitem .del:hover{color:var(--g3)}
+.empty{color:var(--dim);text-align:center;padding:26px 14px;font-size:13px}
+
+/* analysis table */
+table.an{width:100%;border-collapse:collapse;font-size:12.5px}
+table.an th,table.an td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+table.an th{color:var(--dim);font-weight:550;font-size:11px;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0;background:var(--panel);z-index:2}
+table.an td.num{text-align:right;font-variant-numeric:tabular-nums}
+table.an tr:hover td{background:var(--panel2)}
+.g3c{color:var(--g3);font-weight:700}
+.g2c{color:var(--g2);font-style:italic}
+.g1c{color:var(--dim)}
+.scbar{height:5px;border-radius:3px;background:var(--accent);min-width:3px}
+.excl{color:var(--dim2);text-decoration:line-through}
+
+/* footer bits */
+.foot{flex:none;padding:8px 14px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;background:var(--panel);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* modal */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+.backdrop.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);max-width:760px;width:100%;max-height:86vh;display:flex;flex-direction:column}
+.modal .mh{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.modal .mh h3{margin:0;font-size:15px;flex:1}
+.modal .mb{padding:15px 16px;overflow:auto}
+.modal .mf{padding:11px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;font-size:11px;font-family:ui-monospace,monospace}
+
+#load{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:120;padding:20px}
+#load.done{display:none}
+.lcard{text-align:center;max-width:420px}
+.lmark{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:700;color:#fff;font-size:24px}
+.ltitle{font-weight:650;font-size:16px;margin-bottom:6px}
+.lmsg{color:var(--dim);font-size:13px;min-height:20px}
+.lbar{height:5px;border-radius:3px;background:var(--panel2);margin:14px 0 12px;overflow:hidden}
+.lbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
+.lnote{color:var(--dim2);font-size:11.5px;line-height:1.6}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);padding:9px 15px;border-radius:10px;box-shadow:var(--shadow);display:none;z-index:90}
+
+/* ---------- mobile ---------- */
+#mtabs{display:none}
+@media (max-width:900px){
+  main{flex-direction:column}
+  #left,#right{width:auto}
+  #right{border-left:0;border-top:1px solid var(--line);max-height:52vh}
+  #left.hide{display:none}
+  #right.hide{display:none}
+  #mtabs{display:flex;flex:none;background:var(--panel);border-bottom:1px solid var(--line)}
+  #mtabs button{flex:1;padding:11px;color:var(--dim);border-bottom:2px solid transparent}
+  #mtabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+  .brand h1{font-size:13.5px}
+  .brand small{display:none}
+  header{gap:8px;padding:8px 10px}
+  .brand{flex:1 1 auto}
+  #qwrap{order:9;flex:1 1 100%;min-width:0}
+}
+@media (max-width:420px){ .brand .mark{width:26px;height:26px} .hbtn{padding:7px 9px;font-size:12.5px} }
+/* narrow panels: drop the rank + score-bar columns so the table fits */
+@media (max-width:760px){
+  table.an th:nth-child(1),table.an td:nth-child(1),
+  table.an th:last-child,table.an td:last-child{display:none}
+  table.an td:nth-child(2){white-space:normal;word-break:break-word}
+  table.an{font-size:12px}
+}
+@media print{
+  header,#mtabs,.tabs,.foot,#left,#qclear,.addbtn,.del,.hbtn{display:none!important}
+  body,#shell{overflow:visible;height:auto;background:#fff;color:#000}
+  #right{width:100%;border:0;max-height:none}
+  #rbody{overflow:visible;padding:0}
+  table.an th,table.an td{border-color:#999}
+}
+</style>
+</head>
+<body>
+<div id="shell">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true">K</div>
+      <div><h1>Kent's Repertory Explorer</h1><small>Repertory of the Homoeopathic Materia Medica · 1897 · offline</small></div>
+    </div>
+    <div id="qwrap">
+      <input id="q" type="text" placeholder="Search rubrics — e.g. anxiety night, thirstless, weeping consolation" autocomplete="off" aria-label="Search rubrics">
+      <button id="qclear" aria-label="Clear search">✕</button>
+    </div>
+    <button class="hbtn" id="btnchapters" title="Browse chapters">Chapters</button>
+    <button class="hbtn" id="btnhelp" title="Help (?)">?</button>
+    <button class="hbtn" id="btntheme" title="Toggle theme">🌙</button>
+  </header>
+
+  <div id="mtabs">
+    <button data-mt="browse" class="on">Find rubrics</button>
+    <button data-mt="case">Case &amp; analysis <span class="count" id="mc">0</span></button>
+  </div>
+
+  <main>
+    <section id="left">
+      <div class="tabs">
+        <button data-tab="search" class="on">Search</button>
+        <button data-tab="browse">Browse</button>
+        <span style="flex:1"></span>
+        <button id="btnnarrow" title="Show only narrow rubrics (few remedies)">Narrow only</button>
+      </div>
+      <div id="listwrap" role="region" aria-label="Rubric results"><div class="empty" id="listempty">Type a few words — the repertory searches rubric paths, not patient language.</div></div>
+      <div id="chapters" role="region" aria-label="Chapters"></div>
+      <div class="foot">
+        <span id="statline">loading…</span>
+        <span style="flex:1"></span>
+        <span>Kent 1897 · public domain</span>
+      </div>
+    </section>
+
+    <aside id="right" role="region" aria-label="Case and analysis">
+      <div class="rhead">
+        <h2>Case <span class="sub" id="casesub">0 rubrics selected</span></h2>
+        <button class="hbtn" id="btnclear">Clear</button>
+        <button class="hbtn" id="btnexport">Export</button>
+      </div>
+      <div class="tabs" style="padding:0 10px">
+        <button data-rt="case" class="on">Rubrics</button>
+        <button data-rt="an">Analysis</button>
+        <button data-rt="mx">Matrix</button>
+      </div>
+      <div id="rbody"></div>
+    </aside>
+  </main>
+</div>
+
+<div class="backdrop" id="bd"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+  <div class="mh"><h3 id="mtitle">Help</h3><button class="hbtn" id="mx" aria-label="Close">✕</button></div>
+  <div class="mb" id="mbody"></div>
+  <div class="mf" id="mfoot"></div>
+</div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="load" role="status" aria-live="polite">
+  <div class="lcard">
+    <div class="lmark">K</div>
+    <div class="ltitle">Kent's Repertory Explorer</div>
+    <div class="lmsg" id="lmsg">Starting…</div>
+    <div class="lbar"><i id="lbar"></i></div>
+    <div class="lnote">74,667 rubrics · 735,500 graded remedy links · 669 remedies<br>Everything runs on this device — nothing is uploaded.</div>
+  </div>
+</div>
+
+<script id="kentdata" type="application/gzip+base64">__DATA__</script>
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- state ---------- */
+let DATA=null, RUBRICS=[], REMEDIES=[], CHAPTERS=[], BYID=new Map();
+let caseList=[];                 // [{id, path, links}]
+let tab='search', rtab='case', narrowOnly=false, chapterFilter=null;
+let minGrade=1, coverAll=false, excluded=new Set();
+let results=[], selIdx=-1;
+const LS={
+  get(k,d){ try{const v=localStorage.getItem('kre_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{localStorage.setItem('kre_'+k,JSON.stringify(v));}catch(e){} }
+};
+
+/* ---------- load (gzip+base64 embedded) ---------- */
+async function loadData(){
+  const b64=$('#kentdata').textContent.trim();
+  const bin=atob(b64); const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  if(typeof DecompressionStream==='undefined')
+    throw new Error('This browser cannot decompress the embedded data. Please use a recent Chrome, Edge, Firefox or Safari.');
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return JSON.parse(await new Response(stream).text());
+}
+
+/* links arrive packed: 3-char base36 of (remedyIdx*4 + grade) — decoded on demand */
+function decodeLinks(s){
+  const o=[];
+  for(let i=0;i<s.length;i+=3){ const v=parseInt(s.substr(i,3),36); o.push([v>>2, v&3]); }
+  return o;
+}
+function linksOf(r){ if(!r._l) r._l=decodeLinks(r.r||''); return r._l; }
+
+function flatten(tree){
+  const out=[];
+  (function walk(node, path){
+    const p = node.n ? path.concat(node.n) : path;
+    if(node.r){
+      out.push({ id:out.length, path:p, r:node.r, count:node.k||0, low:p.join(' ').toLowerCase() });
+    }
+    for(const c of node.c||[]) walk(c,p);
+  })(tree,[]);
+  return out;
+}
+
+function chapterOf(r){ return r.path[0]; }
+
+/* ---------- search ---------- */
+function runSearch(){
+  const q=$('#q').value.trim().toLowerCase();
+  if(!q){ results=[]; renderList(); return; }
+  const terms=q.split(/\s+/).filter(Boolean);
+  const out=[];
+  for(const r of RUBRICS){
+    if(chapterFilter && r.path[0]!==chapterFilter) continue;
+    if(narrowOnly && r.count>8) continue;
+    const s=r.low; let ok=true;
+    for(const t of terms){ if(s.indexOf(t)<0){ ok=false; break; } }
+    if(ok) out.push(r);
+  }
+  out.sort((a,b)=> a.count-b.count || a.path.length-b.path.length);
+  results=out.slice(0,400);
+  selIdx=results.length?0:-1;
+  renderList(terms);
+  $('#statline').textContent = out.length>results.length
+    ? `${results.length} of ${out.length} matching rubrics (narrowest first)`
+    : `${out.length} matching rubrics`;
+}
+
+function hl(text, terms){
+  let h=esc(text);
+  if(!terms) return h;
+  for(const t of terms){
+    h=h.replace(new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+  }
+  return h;
+}
+function pathHTML(r, terms){
+  return r.path.map(s=>hl(s,terms)).join('<span class="sep">›</span>');
+}
+function inCase(id){ return caseList.some(c=>c.id===id); }
+
+function renderList(terms){
+  const wrap=$('#listwrap');
+  if(tab==='browse'){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  if(!results.length){
+    wrap.innerHTML=$('#q').value.trim()
+      ? '<div class="empty">No rubric contains all of those words.<br>Try fewer words, or turn off “Narrow only”.</div>'
+      : '<div class="empty">Type a few words — the repertory searches rubric paths, not patient language.</div>';
+    return;
+  }
+  wrap.innerHTML=results.map((r,i)=>{
+    const n=r.count;
+    const badge = n<=3?'<span class="chip narrow">'+n+' remedies</span>'
+                 : n>=60?'<span class="chip broad">'+n+' remedies</span>'
+                 : '<span class="chip">'+n+' remedies</span>';
+    const isin=inCase(r.id);
+    const L=linksOf(r);
+    const rem=L.slice(0,60).map(([ri,g])=>{
+      const R=REMEDIES[ri]; return '<span class="rx g'+g+'" title="'+esc(R[1])+'">'+esc(R[0])+'</span>';
+    }).join('') + (L.length>60?'<span class="rx g1">…'+(L.length-60)+' more</span>':'');
+    return '<div class="rub'+(i===selIdx?' sel':'')+'" data-i="'+i+'">'
+      + '<div class="top"><button class="chev" aria-label="Show remedies">▸</button>'
+      + '<div class="txt"><div class="path">'+pathHTML(r,terms)+'</div><div class="meta">'+badge+'<span class="chip">'+esc(r.path[0])+'</span></div></div>'
+      + '<button class="addbtn'+(isin?' in':'')+'" data-add="'+r.id+'">'+(isin?'Added':'Add')+'</button></div>'
+      + '<div class="rem">'+rem+'</div></div>';
+  }).join('');
+  const sel=wrap.querySelector('.rub.sel'); if(sel) sel.scrollIntoView({block:'nearest'});
+}
+
+/* ---------- chapters ---------- */
+function renderChapters(){
+  const counts={};
+  for(const r of RUBRICS) counts[r.path[0]]=(counts[r.path[0]]||0)+1;
+  CHAPTERS=Object.keys(counts).sort();
+  $('#chapters').innerHTML=CHAPTERS.map(c=>
+    '<button class="chcard" data-ch="'+esc(c)+'"><b>'+esc(c)+'</b><span>'+counts[c].toLocaleString()+' rubrics</span></button>').join('');
+}
+
+/* ---------- case + analysis ---------- */
+function addRubric(id){
+  if(inCase(id)){ toast('Already in the case'); return; }
+  const r=BYID.get(id);
+  caseList.push({id, path:r.path.slice(), links:linksOf(r)});
+  saveCase(); refreshRight(); markAddButtons();
+  toast('Added: '+r.path.join(' › '));
+}
+function removeRubric(id){ caseList=caseList.filter(c=>c.id!==id); saveCase(); refreshRight(); markAddButtons(); }
+function saveCase(){ LS.set('case',caseList.map(c=>({id:c.id,path:c.path,links:c.links}))); $('#mc').textContent=caseList.length; }
+
+function analyse(){
+  const rows=new Map();  // remedyIdx -> {score, cover, grades:{}}
+  caseList.forEach((c,ci)=>{
+    for(const [ri,g] of c.links){
+      if(excluded.has(ri)) continue;
+      if(g<minGrade) continue;
+      let o=rows.get(ri); if(!o){ o={ri,score:0,cover:0,g:{}}; rows.set(ri,o); }
+      o.score+=g; o.cover++; o.g[ci]=Math.max(o.g[ci]||0,g);
+    }
+  });
+  let list=[...rows.values()];
+  if(coverAll) list=list.filter(o=>o.cover===caseList.length);
+  list.sort((a,b)=> b.score-a.score || b.cover-a.cover || a.ri-b.ri);
+  return list;
+}
+
+function refreshRight(){
+  $('#casesub').textContent=caseList.length+(caseList.length===1?' rubric selected':' rubrics selected');
+  $('#mc').textContent=caseList.length;
+  const b=$('#rbody');
+  if(rtab==='case'){
+    b.innerHTML = caseList.length? caseList.map((c,i)=>
+      '<div class="caseitem"><span style="color:var(--dim);min-width:16px">'+(i+1)+'.</span>'
+      +'<div class="t">'+esc(c.path.join(' › '))+'</div>'
+      +'<button class="del" data-del="'+c.id+'" aria-label="Remove">✕</button></div>').join('')
+      + '<div class="empty" style="padding:14px">Switch to <b>Analysis</b> to rank remedies across these rubrics.</div>'
+      : '<div class="empty">No rubrics yet.<br>Search on the left and press <b>Add</b>.</div>';
+    return;
+  }
+  const list=analyse();
+  if(!list.length){ b.innerHTML='<div class="empty">'+(caseList.length?'No remedy matches the current filters.':'Add rubrics to see the analysis.')+'</div>'; return; }
+  const max=list[0].score;
+  let h='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px;align-items:center">'
+    + '<label style="font-size:12px;color:var(--dim)">min grade <select id="fg">'
+    + [1,2,3].map(g=>'<option value="'+g+'"'+(g===minGrade?' selected':'')+'>'+g+'</option>').join('')+'</select></label>'
+    + '<label style="font-size:12px;color:var(--dim)"><input type="checkbox" id="fc"'+(coverAll?' checked':'')+'> cover all '+caseList.length+'</label>'
+    + '<span style="flex:1"></span><span style="font-size:12px;color:var(--dim)">'+list.length+' remedies</span></div>';
+  h+='<table class="an"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th></tr></thead><tbody>';
+  list.slice(0,120).forEach((o,i)=>{
+    const R=REMEDIES[o.ri];
+    const cov = o.cover===caseList.length ? '<span style="color:var(--ok)">'+o.cover+'/'+caseList.length+'</span>' : o.cover+'/'+caseList.length;
+    h+='<tr><td class="num">'+(i+1)+'</td>'
+      +'<td><b>'+esc(R[0])+'</b> <span style="color:var(--dim)">'+esc(R[1])+'</span></td>'
+      +'<td class="num">'+o.score+'</td><td class="num">'+cov+'</td>'
+      +'<td style="width:90px"><div class="scbar" style="width:'+Math.max(4,Math.round(88*o.score/max))+'px"></div></td></tr>';
+  });
+  h+='</tbody></table>';
+  if(list.length>120) h+='<div class="empty">Showing the top 120 of '+list.length+' remedies — export for the full list.</div>';
+  b.innerHTML=h;
+  $('#fg').onchange=e=>{minGrade=+e.target.value;refreshRight();};
+  $('#fc').onchange=e=>{coverAll=e.target.checked;refreshRight();};
+}
+
+function renderMatrix(){
+  const b=$('#rbody');
+  if(!caseList.length){ b.innerHTML='<div class="empty">Add rubrics to build the matrix.</div>'; return; }
+  const list=analyse().slice(0,60);
+  if(!list.length){ b.innerHTML='<div class="empty">No remedy matches the current filters.</div>'; return; }
+  let h='<div style="overflow:auto"><table class="an"><thead><tr><th>Remedy</th>';
+  caseList.forEach((c,i)=>{ h+='<th title="'+esc(c.path.join(' › '))+'">R'+(i+1)+'</th>'; });
+  h+='<th class="num">Σ</th></tr></thead><tbody>';
+  list.forEach(o=>{
+    const R=REMEDIES[o.ri];
+    h+='<tr><td>'+esc(R[0])+'</td>';
+    caseList.forEach((c,i)=>{
+      const g=o.g[i]||0;
+      h+='<td class="g'+g+'c">'+(g?g:'·')+'</td>';
+    });
+    h+='<td class="num"><b>'+o.score+'</b></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div style="margin-top:10px;color:var(--dim);font-size:12px">Columns R1…R'+caseList.length+' are your case rubrics, in order. 3 = Kent’s strongest grade.</div>';
+  b.innerHTML=h;
+}
+
+function markAddButtons(){
+  $$('#listwrap .addbtn').forEach(b=>{
+    const id=+b.dataset.add, on=inCase(id);
+    b.classList.toggle('in',on); b.textContent=on?'Added':'Add';
+  });
+}
+
+/* ---------- export ---------- */
+function exportText(fmt){
+  const list=analyse();
+  if(fmt==='csv'){
+    let h='rank,remedy,abbrev,score,covered,'+caseList.map((c,i)=>'R'+(i+1)).join(',')+'\n';
+    list.forEach((o,i)=>{ const R=REMEDIES[o.ri];
+      h+=[i+1,'"'+R[1].replace(/"/g,'""')+'"',R[0],o.score,o.cover,...caseList.map((c,ci)=>o.g[ci]||0)].join(',')+'\n'; });
+    return h;
+  }
+  if(fmt==='json') return JSON.stringify({
+    repertory:'Kent 1897', generated:new Date().toISOString(),
+    rubrics:caseList.map(c=>c.path.join(' > ')),
+    filters:{minGrade,coverAll},
+    remedies:list.map(o=>({remedy:REMEDIES[o.ri][1],abbrev:REMEDIES[o.ri][0],score:o.score,covered:o.cover,grades:caseList.map((c,i)=>o.g[i]||0)}))
+  },null,2);
+  // text
+  let t='KENT\'S REPERTORY — CASE ANALYSIS\n'+'='.repeat(46)+'\n\nRubrics ('+caseList.length+'):\n';
+  caseList.forEach((c,i)=>t+='  '+(i+1)+'. '+c.path.join(' > ')+'\n');
+  t+='\nRemedies by weighted score (grade 3+2+1):\n\n';
+  list.slice(0,60).forEach((o,i)=>{ const R=REMEDIES[o.ri];
+    t+=String(i+1).padStart(3)+'. '+R[0].padEnd(10)+' '+String(o.score).padStart(4)+'  ('+o.cover+'/'+caseList.length+')  '+R[1]+'\n'; });
+  t+='\nRepertory narrows; the materia medica decides.\nSource: Kent 1897 (public domain).\n';
+  return t;
+}
+function download(name,text,type){
+  const b=new Blob([text],{type:type||'text/plain'}), u=URL.createObjectURL(b);
+  const a=document.createElement('a'); a.href=u; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(u),3000);
+}
+
+/* ---------- modal ---------- */
+function openModal(title, body, foot){
+  $('#mtitle').textContent=title; $('#mbody').innerHTML=body; $('#mfoot').innerHTML=foot||'';
+  $('#bd').classList.add('open');
+}
+function closeModal(){ $('#bd').classList.remove('open'); }
+
+function helpHTML(){
+  return '<p><b>Kent\'s Repertory</b> is a lookup table of symptoms → remedies, printed in 1897 and in the public domain. Remedies carry three grades: <span class="g3c">3 (bold)</span>, <span class="g2c">2 (italic)</span>, <span class="g1c">1 (plain)</span>.</p>'
+  +'<p style="margin-top:10px"><b>How to use it</b></p><ol style="margin:6px 0 0 18px;padding:0">'
+  +'<li>Search in <i>repertory language</i> — “anxiety night”, “thirstless”, “weeping consolation”.</li>'
+  +'<li>Prefer <b>narrow</b> rubrics. One with 250 remedies tells you almost nothing; one with 3 is gold.</li>'
+  +'<li><b>Add</b> the rubrics that survive to the case.</li>'
+  +'<li>Open <b>Analysis</b> to rank remedies by the sum of Kent\'s grades across your rubrics.</li>'
+  +'<li>Treat the ranking as a <b>shortlist to study in the materia medica</b> — not as an answer.</li></ol>'
+  +'<p style="margin-top:10px;color:var(--dim)">Keyboard: <kbd>/</kbd> search · <kbd>Enter</kbd> add the highlighted rubric · <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Esc</kbd> close.</p>';
+}
+
+/* ---------- boot ---------- */
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',2200); }
+
+function setTab(t){
+  tab=t; $$('.tabs [data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  $('#chapters').classList.toggle('show',t==='browse');
+  $('#listwrap').style.display=(t==='browse')?'none':'';
+  if(t==='browse'){ $('#statline').textContent=CHAPTERS.length+' chapters'; renderChapters(); }
+  else runSearch();
+}
+function setRTab(t){ rtab=t; $$('.tabs [data-rt]').forEach(b=>b.classList.toggle('on',b.dataset.rt===t)); refreshRight(); }
+function mobileTab(which){
+  $$('#mtabs button').forEach(b=>b.classList.toggle('on',b.dataset.mt===which));
+  $('#left').classList.toggle('hide',which!=='browse');
+  $('#right').classList.toggle('hide',which==='browse');
+}
+
+function applyPrefs(){
+  const dark=LS.get('dark',true);
+  document.body.classList.toggle('light',!dark);
+  $('#btntheme').textContent=dark?'🌙':'☀️';
+}
+
+function prog(pct,msg){ const b=$('#lbar'); if(b) b.style.width=pct+'%'; const m=$('#lmsg'); if(m&&msg) m.textContent=msg; }
+const breathe=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+
+async function boot(){
+  applyPrefs();
+  prog(6,'Decoding the embedded repertory…'); await breathe();
+  let d;
+  try{ d=await loadData(); }
+  catch(e){ $('#load').classList.add('done'); $('#statline').textContent='Could not load the repertory data.'; openModal('Data error','<p>'+esc(e.message)+'</p>'); return; }
+  prog(58,'Indexing rubrics…'); await breathe();
+  DATA=d; REMEDIES=d.remedies;
+  RUBRICS=flatten(d.tree);
+  RUBRICS.forEach(r=>BYID.set(r.id,r));
+  const c=d.counts;
+  prog(86,'Building the chapter index…'); await breathe();
+  $('#statline').textContent=c.rubrics.toLocaleString()+' rubrics · '+c.remedy_links.toLocaleString()+' remedy links · '+c.remedies+' remedies';
+  renderChapters();
+  // restore case
+  const saved=LS.get('case',[]);
+  if(Array.isArray(saved)) saved.forEach(c0=>{ if(BYID.has(c0.id)) caseList.push({id:c0.id,path:c0.path||BYID.get(c0.id).path,links:c0.links||linksOf(BYID.get(c0.id))}); });
+  saveCase(); refreshRight();
+  prog(100,'Ready'); await breathe();
+  $('#load').classList.add('done');
+  $('#q').focus();
+}
+
+/* ---------- events ---------- */
+$('#q').addEventListener('input',()=>{ $('#qclear').style.display=$('#q').value?'block':'none'; runSearch(); });
+$('#qclear').onclick=()=>{ $('#q').value=''; $('#qclear').style.display='none'; runSearch(); $('#q').focus(); };
+$('#btnchapters').onclick=()=>{ setTab(tab==='browse'?'search':'browse'); };
+$('#btntheme').onclick=()=>{ LS.set('dark',!LS.get('dark',true)); applyPrefs(); };
+$('#btnhelp').onclick=()=>openModal('Kent\'s Repertory Explorer', helpHTML(), '<button class="hbtn" id="mok">Close</button>');
+$('#btnnarrow').onclick=e=>{ narrowOnly=!narrowOnly; e.target.classList.toggle('on',narrowOnly); runSearch(); };
+$('#mx').onclick=closeModal;
+$('#bd').addEventListener('click',e=>{ if(e.target===$('#bd')) closeModal(); });
+$$('#mtabs button').forEach(b=>b.onclick=()=>mobileTab(b.dataset.mt));
+$$('.tabs [data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$$('.tabs [data-rt]').forEach(b=>b.onclick=()=>setRTab(b.dataset.rt));
+
+$('#listwrap').addEventListener('click',e=>{
+  const add=e.target.closest('[data-add]');
+  if(add){ e.stopPropagation(); addRubric(+add.dataset.add); return; }
+  const chev=e.target.closest('.chev');
+  const rub=e.target.closest('.rub');
+  if(chev&&rub){ rub.classList.toggle('open'); chev.textContent=rub.classList.contains('open')?'▾':'▸'; return; }
+  if(rub){ rub.classList.toggle('open'); }
+});
+$('#chapters').addEventListener('click',e=>{
+  const c=e.target.closest('[data-ch]'); if(!c) return;
+  chapterFilter=c.dataset.ch; $('#q').value=chapterFilter.toLowerCase();
+  setTab('search'); runSearch();
+  toast('Chapter: '+chapterFilter+' — clear the search to leave it');
+});
+$('#rbody').addEventListener('click',e=>{ const d=e.target.closest('[data-del]'); if(d) removeRubric(+d.dataset.del); });
+$('#btnclear').onclick=()=>{ if(!caseList.length) return; caseList=[]; saveCase(); refreshRight(); markAddButtons(); toast('Case cleared'); };
+$('#btnexport').onclick=()=>{
+  if(!caseList.length){ toast('Add rubrics first'); return; }
+  openModal('Export the analysis',
+    '<p style="color:var(--dim)">The case and its analysis, generated locally. Nothing is uploaded anywhere.</p>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
+    +'<button class="hbtn" data-ex="text">Plain text</button>'
+    +'<button class="hbtn" data-ex="csv">CSV</button>'
+    +'<button class="hbtn" data-ex="json">JSON</button>'
+    +'<button class="hbtn" data-ex="print">Print / PDF</button></div>',
+    '<button class="hbtn" id="mok">Close</button>');
+};
+
+document.addEventListener('click',e=>{
+  const ex=e.target.closest('[data-ex]'); if(!ex) return;
+  const f=ex.dataset.ex;
+  if(f==='print'){ closeModal(); setTimeout(()=>window.print(),150); return; }
+  const t=exportText(f);
+  download('kent-analysis.'+(f==='csv'?'csv':f==='json'?'json':'txt'), t, f==='csv'?'text/csv':f==='json'?'application/json':'text/plain');
+  toast('Downloaded');
+});
+
+document.addEventListener('keydown',e=>{
+  const typing=/input|textarea|select/i.test(document.activeElement.tagName);
+  if(e.key==='Escape'){
+    if($('#bd').classList.contains('open')){ closeModal(); return; }
+    if(typing){ $('#q').value=''; $('#qclear').style.display='none'; runSearch(); return; }
+    return;
+  }
+  if(typing){
+    if(e.key==='Enter'&&results.length){ e.preventDefault(); addRubric(results[Math.max(0,selIdx)].id); }
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();
+      selIdx=Math.min(results.length-1,Math.max(0,selIdx+(e.key==='ArrowDown'?1:-1)));
+      renderList($('#q').value.trim().toLowerCase().split(/\s+/).filter(Boolean));
+    }
+    return;
+  }
+  if(e.key==='/'){ e.preventDefault(); $('#q').focus(); }
+  else if(e.key==='?'){ openModal('Kent\'s Repertory Explorer', helpHTML(), '<button class="hbtn" id="mok">Close</button>'); }
+  else if(e.key==='c'){ mobileTab('case'); setRTab('case'); }
+  else if(e.key==='a'){ mobileTab('case'); setRTab('an'); }
+  else if(e.key==='m'){ mobileTab('case'); setRTab('mx'); }
+});
+
+boot();
+</script>
+</body>
+</html>
