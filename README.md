@@ -1,5 +1,11 @@
 # Repertorium Publicum Explorer
 
+<!-- shot:start -->
+
+![Screenshot](docs/shot.png)
+
+<!-- shot:end -->
+
 An **offline, single-file** repertory explorer for **Repertorium Publicum** (2008) — an open,
 **Kent-derived** repertory — with the printed three-grade system intact, a case builder, and
 grade-weighted repertorisation.
