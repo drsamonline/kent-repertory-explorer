@@ -3,7 +3,7 @@
 # to prove the embedded repertory still decompresses.
 #
 # SPDX-FileCopyrightText: 2026 Dr Sohil Momin
-# SPDX-License-Identifier: LicenseRef-Forge-Proprietary
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 
 name: test
 
