@@ -1,0 +1,47 @@
+# The retrofit's own test. Small on purpose: no dependencies, no build step,
+# no network - node's vm and zlib are enough to run the app's storage layer and
+# to prove the embedded repertory still decompresses.
+#
+# SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+# SPDX-License-Identifier: LicenseRef-Forge-Proprietary
+
+name: test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test
+  cancel-in-progress: true
+
+jobs:
+  retrofit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: the page still parses
+        run: |
+          node -e '
+            const fs=require("fs");
+            const html=fs.readFileSync("docs/play/index.html","utf8");
+            const blocks=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+            let bad=0;
+            blocks.forEach((b,i)=>{
+              if(b.length>1000000) return;            // the base64 data block is not JS
+              try{ new Function(b); }catch(e){ console.log(`script block ${i}: ${e.message}`); bad++; }
+            });
+            if(bad){ console.log("a script block does not parse - the page would boot dead"); process.exit(1); }
+            console.log(`${blocks.length} script blocks, all parse`);
+          '
+      - name: retrofit test
+        run: node tests/retrofit-web-kit.test.js
