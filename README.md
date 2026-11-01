@@ -44,6 +44,7 @@ footer and both manifests.
 | Remedies | **669** |
 | Chapters | **41** |
 | The whole app | **one 1.9 MB HTML file** (gzip + base64, decompressed in the browser) |
+| The dataset itself | **1.35 MB gzipped**, down from 1.46 MB after re-encoding |
 
 Every link carries a grade, taken from the typography of the printed repertory:
 
@@ -61,6 +62,9 @@ Every link carries a grade, taken from the typography of the printed repertory:
 - **Filters** — narrow-only with an adjustable threshold, sort by narrowest / broadest / A–Z / chapter.
 - **Named cases** — keep several at once: switch, rename, delete. Each holds its own rubrics and notes.
 - **Case builder** — add rubrics, attach a note to each, remove or clear. **Undo/redo** with `Ctrl+Z`.
+- **Scoring you can see** — three weightings (3·2·1, 1·1·1, 9·4·1) and an eliminative filter that
+  keeps only grade-2-or-better coverage. The formula is printed under the control and every export
+  says which one produced the numbers.
 - **Analysis** — remedies ranked by the sum of grades and rubrics covered; minimum-grade filter;
   "cover all rubrics"; exclude a remedy (it stays visible, struck through, and can be brought back).
 - **Matrix** — remedy × rubric grid showing each grade.
@@ -105,23 +109,25 @@ docs/play/index.html          the app (one self-contained file)
 docs/play/manifest.webmanifest  the app's manifest, start_url ./ and scope ./
 docs/sw.js                    the offline cache — precaches the landing page and the app
 docs/assets/                  icon.svg, icon.ico, icon-*.png, badge-*.svg, screenshots
-app.html                      the same app at the repo root, for the single-file distribution
-index.html                    the same landing page at the repo root
 pipeline/extract.py           rebuilds kent.json from the OOReP database dump
-pipeline/build_app.py         embeds the data (gzip + base64) into app.html
+pipeline/build_app.py         embeds the data (gzip + base64) into the app
+pipeline/recompress.py        re-encodes the embedded dataset (v1 tree -> v2 columnar)
 pipeline/app_template.html    the application source
 scripts/badges.py             draws the SVG badges — locally, no image service
 scripts/icons.mjs             rasterises icon.svg to PNG sizes and the OG card
 scripts/ico.py                packs those PNGs into icon.ico for the Windows EXE
+scripts/audit.py              holds the repo to its own claims — 81 checks, no dependencies
 scripts/shot.sh               screenshots the landing page and the app
 tests/retrofit-web-kit.test.js  the dependency-free suite (14)
-tests/enhancements.test.mjs   the optional browser suite (24, needs puppeteer-core)
+tests/enhancements.test.mjs   the optional browser suite (30, needs puppeteer-core)
 ENHANCEMENTS.md               what could be built next, all of it offline
 RELEASES.md                   how a release is cut, and what each icon means
 ```
 
-`app.html` is built by `build_app.py`, which injects the repertory — gzipped and base64-encoded —
-into the template. The browser decompresses it with `DecompressionStream`.
+`docs/play/index.html` is built by `build_app.py`, which injects the repertory — gzipped and
+base64-encoded — into the template; the browser decompresses it with `DecompressionStream`. The
+portable EXE and the APK are that same file, wrapped. There are no other copies of it in the repo:
+a second copy is a second thing to drift.
 
 **Nothing here is fetched.** No CDN, no web font, no badge service, no analytics. The badges are
 drawn by `scripts/badges.py` and committed; an offline-first repo that needs the network to describe
@@ -138,6 +144,16 @@ python3 -m http.server -d docs 8000
 # → http://localhost:8000/
 ```
 
+## Audit
+
+```bash
+python3 scripts/audit.py       # 81 checks passed
+```
+
+Every number the repository states, checked against the artefact it describes: the four dataset
+counts against the embedded payload, every local link and asset, the manifest and service-worker
+file lists, the licence statements, the build stamps, and that nothing is fetched from the network.
+
 ## Tests
 
 ```bash
@@ -149,13 +165,13 @@ storage layer and to prove the embedded repertory still decompresses and still d
 74,480 rubrics / 735,460 links / 669 remedies.
 
 There is a second, **optional** suite that drives a real Chromium and checks the enhancement layer
-end to end — 24 assertions covering search narrowing, undo, named cases, the remedy views, the
-drill-down and the deep links. It is the one thing here that needs an install, and it is a
+end to end — 30 assertions covering search narrowing, undo, named cases, the remedy views, the
+scoring methods, the drill-down and the deep links. It is the one thing here that needs an install, and it is a
 development tool only:
 
 ```bash
 npm i puppeteer-core
-CHROME=/usr/bin/chromium node tests/enhancements.test.mjs    # 24/24 passed
+CHROME=/usr/bin/chromium node tests/enhancements.test.mjs    # 30/30 passed
 ```
 
 ## Data
@@ -167,13 +183,15 @@ under `repertory/repertorium-publicum-2008/`.
 
 ## Licence
 
-Two things are licensed here, and they are not the same thing.
+**PolyForm Noncommercial 1.0.0.** The canonical text is in [`LICENSE`](LICENSE), with the Required
+Notice line it ships with. That licence covers this repository: the app, the pipeline, the scripts,
+the page and the prose.
 
-- **The application code** — the HTML, the pipeline, the scripts — is released under
-  **PolyForm Noncommercial 1.0.0**, the canonical text in [`LICENSE`](LICENSE).
-- **The embedded data** — *Repertorium Publicum* (2008), Vladimir Polony — is **GPL v3**, as published
-  in the OpenRep source code. A build that embeds it carries that obligation with it, so read
-  [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt) before redistributing the combined file.
+The application embeds **Repertorium Publicum** (2008) by **Vladimir Polony**, which its author
+published under **GNU GPL v3** as part of the OpenRep source code. That is the data's licence, not
+ours, and nothing here relicenses it: its text is kept at
+[`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt) so the terms travel with the material, and anyone
+redistributing the combined file should read it. The app's footer names it for the same reason.
 
 Requests, not conditions: please credit Dr Sohil Momin and the source of the data.
 

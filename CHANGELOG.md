@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.3.0 — 2026-11-01 · *the last two enhancements, the licence, and an audit*
+
+### Added
+- **Scoring methods, with the arithmetic on the screen.** The analysis now offers three weightings —
+  **3·2·1** (the printed grade, summed), **1·1·1** (every rubric counts once) and **9·4·1** (the grade,
+  squared) — and an **eliminative** filter that keeps only remedies holding grade 2 or better in every
+  rubric of the case. The formula is printed under the control, the score column header names it, and
+  every export states which one produced the numbers.
+  The presets are named by what they compute, not by a school: see `ENHANCEMENTS.md` for why.
+- **`scripts/audit.py`** — 81 checks that hold the repository to its own claims: every number against
+  the embedded dataset, every local link and asset, the manifest and service-worker file lists, the
+  licence statements, the build stamps, and that nothing is fetched from the network at runtime.
+
+### Changed
+- **The embedded dataset is re-encoded** (v1 tree → v2 columnar: parallel arrays, one concatenated
+  link blob, no repeated key names on 98,000 nodes). ⚑ **Measured: 1,459,700 → 1,346,954 bytes
+  gzipped (−7.7%)**, base64 1,946,268 → 1,795,940, and the page 2.04 MB → **1.90 MB**. Parsing gets
+  cheaper too: 5.19 MB of JSON → 4.05 MB. `pipeline/recompress.py` does the conversion and verifies
+  that every one of the 74,480 rubrics decodes identically before it writes anything. The loader
+  accepts both shapes, so a build from the template with the original `kent.json` still works.
+- **The licence is stated once, and it is PolyForm.** `LICENSE` is PolyForm Noncommercial 1.0.0 and
+  the README, the landing page and the badge all say so. The embedded Repertorium Publicum data keeps
+  its own GPL v3 terms — set by its author, kept at `LICENSE-GPL-3.0.txt`, and never relicensed here.
+  The app's footer now reads "data GPL v3" so the attribution says whose licence it is.
+- **SPDX headers** on every script, matching the workflows.
+
+### Removed
+- **The stale copies at the repo root** — `app.html`, `index.html`, `manifest.webmanifest`, `sw.js`
+  and `assets/`. They were older builds of the same two pages, and a second copy is a second thing to
+  drift from the first. The site is `docs/`; the single file is `docs/play/index.html`; the portable
+  EXE and APK are that same file, wrapped and attached to the release.
+
+### Fixed
+- An earlier note in this file's draft claimed the re-encoding saved 20%. The measurement above is
+  the real one: 7.7%. The first figure came from a scratch script that was not measuring what it
+  claimed to, which is exactly the kind of number this repository's audit now exists to catch.
+
 ## 1.2.0 — 2026-11-01 · *the enhancements release*
 
 Everything in `ENHANCEMENTS.md` except two items, which that file names and explains. The work is one

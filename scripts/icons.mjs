@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // Rasterise docs/assets/icon.svg into the PNG sizes the manifest and the
 // release builds need. Development tool only — the app loads nothing.
 //

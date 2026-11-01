@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Screenshot the landing page and the app with headless Chromium.
 #
 #   scripts/shot.sh                 # landing page  -> docs/assets/landing-{desktop,mobile}.png

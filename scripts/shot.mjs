@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // Screenshots for this repo's docs — a DEVELOPMENT tool, not a runtime dependency.
 // The app itself loads nothing: this file is only run by a maintainer, and needs
 // puppeteer-core + a local Chromium.

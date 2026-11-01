@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // The optional browser suite. Unlike tests/retrofit-web-kit.test.js this one is
 // NOT dependency-free: it drives a real Chromium through puppeteer-core to prove
 // the enhancement layer does what the changelog says.
@@ -141,6 +143,48 @@ const cov = await page.evaluate(() => {
   return { title, why: /why it ranks here/.test(title), covers: /covers \d+ of \d+/.test(body) };
 });
 t('ranking explanation modal', cov.why && cov.covers, cov.title || 'none');
+
+// 9 scoring methods (weights + eliminative), with the formula on screen
+const sc = await page.evaluate(async () => {
+  // a three-rubric case, so the methods actually differ
+  ['anxiety night', 'thirstless', 'weeping consolation'].forEach(function (t) {
+    document.getElementById('q').value = t; runSearch();
+    if (results[0]) addRubric(results[0].id);
+  });
+  setRTab('an');
+  await new Promise(r => setTimeout(r, 150));
+  const sel = document.getElementById('fmethod');
+  const elim = document.getElementById('felim');
+  if (!sel || !elim) return { missing: true };
+  const top = () => {
+    const c = document.querySelector('#rbody .an tbody tr td.num b');
+    return c ? +c.textContent : null;
+  };
+  const kent = top();
+  sel.value = 'steep'; sel.dispatchEvent(new Event('change'));
+  await new Promise(r => setTimeout(r, 150));
+  const steep = top();
+  const head = document.querySelector('#rbody .an thead th.num').textContent;
+  const note = document.querySelector('#rbody .toolbar + div').textContent;
+  sel.value = 'equal'; sel.dispatchEvent(new Event('change'));
+  await new Promise(r => setTimeout(r, 150));
+  const equal = top();
+  const rowsBefore = document.querySelectorAll('#rbody .an tbody tr').length;
+  elim.checked = true; elim.dispatchEvent(new Event('change'));
+  await new Promise(r => setTimeout(r, 150));
+  const rowsAfter = document.querySelectorAll('#rbody .an tbody tr').length;
+  elim.checked = false; elim.dispatchEvent(new Event('change'));
+  sel.value = 'kent'; sel.dispatchEvent(new Event('change'));
+  await new Promise(r => setTimeout(r, 150));
+  return { kent, steep, equal, head, note, rowsBefore, rowsAfter,
+           text: exportText('text').split('\n').filter(l => /weighted score/.test(l))[0] };
+});
+t('scoring control present', !sc.missing);
+t('the header states the arithmetic', /Score 3\u00b72\u00b71|Score/.test(sc.head || ''), sc.head);
+t('steep weights change the score', sc.steep > sc.kent, `kent ${sc.kent} -> steep ${sc.steep}`);
+t('equal weights flatten the score', sc.equal < sc.kent, `kent ${sc.kent} -> equal ${sc.equal}`);
+t('eliminative keeps a subset', sc.rowsAfter <= sc.rowsBefore, `${sc.rowsBefore} -> ${sc.rowsAfter}`);
+t('the export states the method', /weighted score \(3\u00b72\u00b71\)/.test(sc.text || ''), sc.text || '');
 
 // 9 chapter drill-down
 const ch = await page.evaluate(() => {

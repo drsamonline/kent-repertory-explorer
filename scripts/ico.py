@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 """Pack the PNG icons into one Windows .ico, so the released EXE carries the app
 icon instead of the default blank page.
 

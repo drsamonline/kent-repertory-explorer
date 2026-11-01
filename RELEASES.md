@@ -51,6 +51,45 @@ Always-current downloads:
 
 ---
 
+## v1.3.0 — 2026-11-01 · *the last two, the licence, and an audit*
+
+✚ **Scoring methods.** Three weightings — **3·2·1** (the printed grade, summed), **1·1·1** (every
+rubric once), **9·4·1** (the grade, squared) — and an **eliminative** filter that keeps only remedies
+holding grade 2 or better in every rubric of the case. The formula is printed under the control, the
+score column names it, and every export states which one produced the numbers. The presets are named
+by their arithmetic rather than by a school: a ranking that quietly uses the wrong convention is
+worse than no ranking, so the app shows its working and does not borrow a name it cannot verify.
+
+✎ **The dataset is re-encoded.** v1 tree → v2 columnar: parallel arrays, one concatenated link blob,
+no key names repeated on 98,000 nodes. ⚑ **Measured: 1,459,700 → 1,346,954 bytes gzipped (−7.7%)**;
+base64 1,946,268 → 1,795,940; the page 2.04 MB → **1.90 MB**; the JSON the browser parses 5.19 MB →
+4.05 MB. `pipeline/recompress.py` verifies that all 74,480 rubrics decode identically before it
+writes a byte, and the loader still accepts the old shape, so a build from the template with the
+original `kent.json` keeps working.
+
+✎ **The licence is PolyForm, stated once.** PolyForm Noncommercial 1.0.0 covers this repository — the
+app, the pipeline, the scripts, the page and the prose. The embedded Repertorium Publicum data keeps
+its own GPL v3 terms, set by its author and kept at `LICENSE-GPL-3.0.txt`; nothing here relicenses
+it, and the app's footer now says "data GPL v3" so the line says whose licence it is.
+
+✚ **`scripts/audit.py` — 81 checks.** Every number the repository states, held against the artefact
+it describes: the four dataset counts against the embedded payload, every local link and asset, the
+manifest and service-worker file lists, the licence statements, the build stamps, and that nothing is
+fetched from the network at runtime. It runs with no dependencies and no network, and the release is
+not cut until it is green.
+
+✕ **The stale copies at the repo root** — `app.html`, `index.html`, `manifest.webmanifest`, `sw.js`,
+`assets/`. Older builds of the same two pages. A second copy is a second thing to drift.
+
+✓ **A number in this file was wrong.** An earlier draft claimed the re-encoding saved 20%; the real
+figure is 7.7%. The first came from a scratch measurement that was not measuring what it claimed to.
+It is corrected here, and the audit now exists partly because of it.
+
+⚑ **Measured:** 81/81 audit checks · 14/14 dependency-free tests · **30/30** in the browser suite ·
+74,480 rubrics · 735,460 graded links · 669 remedies · 41 chapters · 0 runtime dependencies.
+
+---
+
 ## v1.2.0 — 2026-11-01 · *the enhancements release*
 
 Everything in `ENHANCEMENTS.md` except two items, and that file names both and says what each one

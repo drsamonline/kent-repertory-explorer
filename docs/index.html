@@ -444,7 +444,7 @@ footer a:hover{color:var(--accent);text-decoration:underline}
         <tr><td>The whole app, in one file</td><td class="v small">1.9 MB, gzip + base64</td></tr>
         <tr><td>Requests to the network</td><td class="v">0</td></tr>
         <tr><td>Runtime dependencies</td><td class="v">0</td></tr>
-        <tr><td>Test suite</td><td class="v small">14 passing</td></tr>
+        <tr><td>Tests · audit</td><td class="v small">14 + 30 passing · 82 checks</td></tr>
       </tbody>
     </table>
   </div>
@@ -545,10 +545,11 @@ python3 -m http.server -d docs 8000
       <p class="note" style="margin-top:16px">Panels: <code>search</code>, <code>browse</code>,
         <code>case</code>, <code>analysis</code>, <code>matrix</code>. Scenes: <code>search</code>,
         <code>narrow</code>, <code>case</code>, <code>analysis</code>.</p>
-      <p class="note" style="margin-top:14px">New in 1.2: <b>named cases</b> — switch, rename and keep
-        several at once; click any remedy to see <b>every rubric it appears in</b>, or to see exactly
-        <b>which of your rubrics it covers and which it misses</b>; <b>undo</b> with Ctrl+Z; and a print
-        sheet that is the case, not the interface.</p>
+      <p class="note" style="margin-top:14px">Also: <b>named cases</b> — switch, rename and keep several
+        at once; click any remedy to see <b>every rubric it appears in</b>, or exactly <b>which of your
+        rubrics it covers and which it misses</b>; <b>scoring you can see</b> — 3·2·1, 1·1·1 or 9·4·1,
+        with the arithmetic printed under the control and in every export; <b>undo</b> with Ctrl+Z; and a
+        print sheet that is the case, not the interface.</p>
     </div>
   </div>
 </section>
@@ -591,13 +592,14 @@ python3 -m http.server -d docs 8000
       </div>
       <div class="col" style="max-width:280px">
         <b>Licence</b>
-        <span style="display:block;color:var(--ink3);font-size:13.5px">App: PolyForm Noncommercial 1.0.0, per
+        <span style="display:block;color:var(--ink3);font-size:13.5px">PolyForm Noncommercial 1.0.0 — see
           <a href="https://github.com/drsamonline/kent-repertory-explorer/blob/main/LICENSE" style="display:inline">LICENSE</a>.
-          Embedded data: Repertorium Publicum (2008), Vladimir Polony — GPL v3.</span>
+          The embedded Repertorium Publicum (2008) data keeps its own GPL v3 terms, set by its author;
+          that text ships beside ours.</span>
       </div>
     </div>
     <div class="stampft">
-      <span id="build">build 1.2.0 · 2026-11-01</span>
+      <span id="build">build 1.3.0 · 2026-11-01</span>
       <span>74,480 rubrics · 735,460 graded links · 669 remedies · 41 chapters</span>
       <span>no cookies · no analytics · no network</span>
     </div>

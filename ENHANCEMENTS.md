@@ -1,6 +1,7 @@
 # Enhancements
 
-**Status: applied in 1.2.0, except two — and this file says which and why.**
+**Status: all nineteen applied** (17 in 1.2.0, the last two in 1.3.0). What remains is what
+the work turned up along the way — listed honestly at the end.
 Everything below is achievable offline, with no internet and no external dependency: no library, no
 CDN, no service, no model. Where an item needed an algorithm, the algorithm is in the repo.
 
@@ -29,6 +30,8 @@ file — extending the app's own functions keeps the shipped build and its sourc
 | 15 | **Theme on first paint** | Follows `prefers-color-scheme` until the reader chooses; the toggle still wins | functional test (light emulated) |
 | 16 | **The retrofit strip** | Theme-aware from the app's own variables, and lifted clear of the status line on a phone | screenshots |
 | 17 | **Releases with icons** | `icon.ico` for the EXE, PNG sizes for the APK and manifest, `og.png` social card, `RELEASES.md` | `scripts/ico.py`, `scripts/icons.mjs` |
+| 18 | **Smaller payload** | The dataset re-encoded columnar (v2): parallel arrays, one concatenated link blob, no key names repeated on 98,000 nodes. **1,459,700 → 1,346,954 bytes gzipped (−7.7%)**; the page 2.04 MB → 1.90 MB | `pipeline/recompress.py` verifies all 74,480 rubrics decode identically before writing; the browser suite re-checks the counts |
+| 19 | **Scoring methods** | Three weightings (3·2·1, 1·1·1, 9·4·1) and an eliminative filter (grade 2+ in every rubric), with the formula printed on the screen and in every export | browser suite: the score moves with the weights, the header names the method, the export states it |
 
 ## Measured, not asserted
 
@@ -45,30 +48,33 @@ rubrics, and the cost there is *sorting them*, not scanning them. Fixing it need
 selection — and that has to keep the full candidate set for the narrowing above, so it is not the
 one-liner it looks like. Left open deliberately, with the number on the table.
 
-## Deferred — and why
+## What is left, and why
 
-**18 · Elimination and the other methods.** Kent's grade-sum is implemented; Boenninghausen/Boger
-weighting and eliminative analysis are not. This is the one item I will not guess at: the difference
-between the methods is a clinical convention, and a ranking that quietly uses the wrong one is worse
-than no ranking. It needs the method written down by a practitioner — the formulas, the tie-breaks,
-what "eliminated" means for a remedy that fails one high-grade rubric — and then it is a day's work on
-data that is already in `caseList[].links`. **What is needed from you: the definition.**
+**The scoring presets are named by arithmetic, not by a school.** 3·2·1, 1·1·1 and 9·4·1 are exactly
+what they say they are, and the app prints which one produced a number. They are *not* labelled
+"Kent", "Boger" or "Boenninghausen", because those are clinical conventions and I will not put a
+school's name on arithmetic I cannot verify against its own literature. If you want those labels,
+what is needed is the definition written down — the weights, the tie-breaks, and what "eliminated"
+means for a remedy that fails one high-grade rubric — and the labels can then be added to `METHODS`
+in the enhancement layer in an afternoon.
 
-**19 · Smaller payload.** The 1.9 MB is gzipped JSON, base64'd into the page. A column-oriented
-form (separate arrays for paths, link targets and grades, plus a path-prefix dictionary) would cut it
-before gzip, and the base64 layer could go for the web build if the data were a sibling `.json.gz`.
-That requires rebuilding the dataset — `pipeline/extract.py` needs the OOReP PostgreSQL dump and
-`build_app.py` needs the resulting `kent.json`, neither of which is in the repo. **What is needed:
-the dump, or the JSON.**
+**The payload could go further.** v2 is 7.7% smaller. The remaining weight is the link blob: 735,460
+pairs, 2 base36 characters for the remedy and 1 for the grade. Delta-encoding the indices was tried
+and measured *worse* (1,496,245 bytes against 1,346,954) because the order is not ascending and the
+bias needed to keep negatives costs more than it saves. Packing the index arrays into strings was
+also tried: 25 KB better, not worth the decode complexity. The one real remaining win is serving the
+data as a sibling `.json.gz` for the web build and keeping the embedded copy only for the portable
+file — that needs two build outputs from `app-builder`, not a change in this repo.
 
-## Still worth doing (not in the 1.2.0 list)
+## Still worth doing
 
-- **Storage in IndexedDB.** Cases still live in `localStorage` (~5 MB, synchronous). `navigator.storage.persist()`
-  is asked for on first save, which is the part that stops eviction; moving the store itself is a
-  migration, not a feature.
-- **A bounded top-k for the first keystroke** (see the table above).
+- **Storage in IndexedDB.** Cases still live in `localStorage` (~5 MB, synchronous). Moving the store
+  is a migration with a compatibility window, not a feature; `navigator.storage.persist()` — the part
+  that actually stops eviction — is not yet wired either.
+- **A bounded top-k for the first keystroke** (see the timing table above): ~35 ms, and the cost is
+  sorting, not scanning.
 - **Windowing rather than stepping.** `Show more` bounds the DOM; recycling a fixed window on scroll
-  would be smoother, and would need the sort question above solved first.
+  would be smoother, and needs the sort question above solved first.
 
 ## Deliberately not doing
 

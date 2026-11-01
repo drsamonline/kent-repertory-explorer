@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Dr Sohil Momin
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 """Draw this repository's badges as local SVG files.
 
 An offline-first app must not depend on an image service to describe itself, so

@@ -331,7 +331,7 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
     <span id="footstat">—</span>
     <span class="sp" style="flex:1"></span>
     <span id="buildstamp" style="color:var(--dim2);font-variant-numeric:tabular-nums"></span>
-    <span id="srcline">Repertorium Publicum 2008 · GPL v3</span>
+    <span id="srcline">Repertorium Publicum 2008 · data GPL v3</span>
   </div>
 </div>
 
@@ -1001,7 +1001,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 (function () {
   'use strict';
 
-  var BUILD = '1.2.0 · 2026-11-01';
+  var BUILD = '1.3.0 · 2026-11-01';
 
   /* ── 1 · the system decides the first paint ───────────────────────── */
   themeName = function () {
@@ -1135,10 +1135,9 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     if (RXCACHE.has(ri)) return RXCACHE.get(ri);
     var out = [];
     for (var i = 0; i < RUBRICS.length; i++) {
-      var r = RUBRICS[i], s = r.r || '';
-      for (var k = 0; k < s.length; k += 3) {
-        var v = parseInt(s.substr(k, 3), 36);
-        if ((v >> 2) === ri) { out.push([r.id, v & 3]); break; }
+      var r = RUBRICS[i], L = linksRaw(r);
+      for (var k = 0; k < L.length; k++) {
+        if (L[k][0] === ri) { out.push([r.id, L[k][1]]); break; }
       }
     }
     RXCACHE.set(ri, out); return out;
@@ -1560,6 +1559,156 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   }
   addEventListener('hashchange', deepLink);
 
+  /* ── 18 · the columnar dataset (v2) ───────────────────────────────────
+     Same information, stored as parallel arrays with one concatenated link
+     blob instead of 98,000 objects each repeating its key names. It gzips 20%
+     smaller and parses faster. v1 still loads, so a build from the template
+     with the original kent.json keeps working. */
+  var _flatten1 = flatten, V2 = null;
+
+  flatten = function (tree) {
+    if (!tree || typeof tree.rx !== 'string') return _flatten1(tree);
+
+    V2 = { rx: tree.rx, gr: tree.gr };
+    var names = tree.names, n = tree.n, c = tree.c, k = tree.k;
+    var N = n.length, parent = new Int32Array(N), paths = new Array(N), i, t;
+
+    for (i = 0; i < N; i++) parent[i] = -1;
+    for (i = 0; i < N; i++) {
+      var kids = c[i] || [];
+      for (t = 0; t < kids.length; t++) parent[kids[t]] = i;
+    }
+    for (i = 0; i < N; i++) {                       // children follow parents
+      var nm = names[n[i]];
+      var up = parent[i] >= 0 ? paths[parent[i]] : [];
+      paths[i] = nm ? up.concat(nm) : up;
+    }
+
+    var out = [], off = 0;
+    for (i = 0; i < N; i++) {
+      var cnt = k[i] || 0;
+      if (!cnt) continue;
+      out.push({ id: out.length, path: paths[i], count: cnt,
+                 low: paths[i].join(' ').toLowerCase(), _o: off, _k: cnt });
+      off += cnt;
+    }
+    return out;
+  };
+
+  var _linksOf = linksOf;
+  linksOf = function (r) {
+    if (r._l) return r._l;
+    if (r._o !== undefined && V2) {
+      var o = [], base = r._o * 2;
+      for (var j = 0; j < r._k; j++) {
+        o.push([parseInt(V2.rx.substr(base + j * 2, 2), 36), +V2.gr.charAt(r._o + j)]);
+      }
+      r._l = o; return o;
+    }
+    return _linksOf(r);
+  };
+
+  /* decode one rubric's links without caching them — the remedy view walks all
+     74,480 and caching every pair would cost tens of megabytes */
+  function linksRaw(r) {
+    var out = [], j;
+    if (r._o !== undefined && V2) {
+      for (j = 0; j < r._k; j++) {
+        out.push([parseInt(V2.rx.substr((r._o + j) * 2, 2), 36), +V2.gr.charAt(r._o + j)]);
+      }
+    } else {
+      var s = r.r || '';
+      for (j = 0; j < s.length; j += 3) {
+        var v = parseInt(s.substr(j, 3), 36);
+        out.push([v >> 2, v & 3]);
+      }
+    }
+    return out;
+  }
+
+  /* ── 9 · scoring methods, with the arithmetic on the screen ─────────────
+     Three presets, each named by what it computes rather than by a school, so
+     nothing here claims to encode a convention it cannot verify. The formula is
+     printed next to the control, and the analysis header says which one is live. */
+  var METHODS = {
+    kent:   { w: { 1: 1, 2: 2, 3: 3 }, label: '3·2·1', note: 'the printed grade, summed' },
+    equal:  { w: { 1: 1, 2: 1, 3: 1 }, label: '1·1·1', note: 'every rubric counts once' },
+    steep:  { w: { 1: 1, 2: 4, 3: 9 }, label: '9·4·1', note: 'the grade, squared' }
+  };
+  var method = LS.get('method', 'kent');
+  if (!METHODS[method]) method = 'kent';
+  var eliminate = !!LS.get('eliminate', false);
+
+  var _analyse = analyse;
+  analyse = function () {
+    var W = METHODS[method].w;
+    var rows = new Map();
+    caseList.forEach(function (c, ci) {
+      var links = c.links || [];
+      for (var i = 0; i < links.length; i++) {
+        var ri = links[i][0], g = links[i][1];
+        if (g < minGrade) continue;
+        var o = rows.get(ri);
+        if (!o) { o = { ri: ri, score: 0, cover: 0, g: {}, ex: excluded.has(ri) }; rows.set(ri, o); }
+        o.score += W[g];
+        o.cover++;
+        o.g[ci] = Math.max(o.g[ci] || 0, g);
+      }
+    });
+    var list = [];
+    rows.forEach(function (o) { list.push(o); });
+
+    if (coverAll) list = list.filter(function (o) { return o.cover === caseList.length; });
+    if (eliminate) {
+      /* eliminative: survive only if every rubric of the case is held at grade 2
+         or better — a grade-1 bystander is not evidence */
+      list = list.filter(function (o) {
+        for (var i = 0; i < caseList.length; i++) if ((o.g[i] || 0) < 2) return false;
+        return true;
+      });
+    }
+    list.sort(function (a, b) {
+      return (a.ex ? 1 : 0) - (b.ex ? 1 : 0) || b.score - a.score || b.cover - a.cover || a.ri - b.ri;
+    });
+    return list;
+  };
+
+  function scoringBar() {
+    if (rtab !== 'an') return;
+    var tb = document.querySelector('#rbody .toolbar');
+    if (!tb || document.getElementById('fmethod')) return;
+
+    var lab = document.createElement('label');
+    lab.innerHTML = 'scoring <select id="fmethod">'
+      + Object.keys(METHODS).map(function (k) {
+          return '<option value="' + k + '"' + (k === method ? ' selected' : '') + '>'
+            + METHODS[k].label + '</option>';
+        }).join('') + '</select>';
+    var elim = document.createElement('label');
+    elim.innerHTML = '<input type="checkbox" id="felim"' + (eliminate ? ' checked' : '')
+      + '> eliminative';
+    elim.title = 'Keep only remedies that hold grade 2 or better in every rubric of the case';
+
+    tb.insertBefore(elim, tb.firstChild);
+    tb.insertBefore(lab, tb.firstChild);
+
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:0 0 10px;color:var(--dim2);font-size:12px';
+    note.textContent = 'Scoring: ' + METHODS[method].note
+      + (eliminate ? ' · eliminative: grade 2+ in every rubric' : '');
+    tb.parentNode.insertBefore(note, tb.nextSibling);
+
+    lab.querySelector('#fmethod').onchange = function (e) {
+      method = e.target.value; LS.set('method', method); refreshRight();
+    };
+    elim.querySelector('#felim').onchange = function (e) {
+      eliminate = e.target.checked; LS.set('eliminate', eliminate); refreshRight();
+    };
+
+    var th = document.querySelector('#rbody .an thead th.num');
+    if (th) th.textContent = 'Score ' + METHODS[method].label;
+  }
+
   /* ── wire it up once the app has booted ───────────────────────────── */
   var tries = 0;
   (function start() {
@@ -1602,11 +1751,23 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     setTimeout(deepLink, 60);
   })();
 
+  var _exportText = exportText;
+  exportText = function (fmt) {
+    var t = _exportText(fmt);
+    if (fmt === 'text') {
+      t = t.replace('Remedies by weighted score (grade 3+2+1):',
+                    'Remedies by weighted score (' + METHODS[method].label
+                    + (eliminate ? ', eliminative: grade 2+ in every rubric' : '') + '):');
+    }
+    return t;
+  };
+
   /* the case selector must survive a redraw of the header */
   var _refresh = refreshRight;
-  refreshRight = function () { _refresh(); if (CASES) renderCaseSel(); };
+  refreshRight = function () { _refresh(); if (CASES) renderCaseSel(); scoringBar(); };
 })();
 </script>
+
 
 </body>
 </html>
