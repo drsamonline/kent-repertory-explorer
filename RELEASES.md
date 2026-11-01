@@ -51,6 +51,44 @@ Always-current downloads:
 
 ---
 
+## v1.2.0 — 2026-11-01 · *the enhancements release*
+
+Everything in `ENHANCEMENTS.md` except two items, and that file names both and says what each one
+needs. The whole set is one additive layer at the end of the app — no rewriting of the 2 MB body, so
+the shipped build and its source cannot drift.
+
+✚ **Named cases.** A selector in the Case panel: switch, new, rename, delete. Each case keeps its own
+rubrics and notes. The pre-1.2 single case is migrated on first load.
+
+✚ **Remedy → rubrics.** Click a remedy anywhere — a chip in a rubric, a row in the analysis — and see
+every rubric it appears in: the count, the grade split, the chapters, and the 40 narrowest.
+
+✚ **Explain the ranking.** Click a remedy in the analysis for its score, its position, and every rubric
+of *this* case marked covers or misses at which grade. The ranking stops being a number.
+
+✚ **Undo / redo** over add, remove, clear and note edits — `Ctrl+Z`, `Ctrl+Shift+Z`, 50 deep.
+
+✚ **Chapter drill-down**, **"did you mean"**, **`#rubric=` / `#remedy=` deep links**, an **offline
+indicator**, an **update prompt**, an **install prompt**, and a **print sheet that is the case**.
+
+✎ **Search narrows incrementally.** A keystroke late in a word filters the previous result set instead
+of all 74,480 rubrics. ⚑ **Measured: the scan 9.1 ms → 1.5 ms; a keystroke late in a word 1.2–1.9 ms.**
+The first keystroke of a broad word still costs ~35 ms — that is sorting tens of thousands of matches,
+not scanning them, and it is written down rather than hidden.
+
+✎ **Results arrive 60 at a time** with `Show N more`, instead of 400 cards rendered at once.
+✎ **The app follows the system theme on first paint** — it used to open dark on a light device.
+✎ **The result list is a listbox**: `role`, `aria-activedescendant`, `aria-expanded`, and an
+accessible label on every grade chip.
+
+✓ **The floating tools strip** hardcoded `#111` and stayed dark in the light and high-contrast themes;
+it now reads the app's own variables and clears the status line on a phone.
+
+⚑ **Measured:** 14/14 in the dependency-free suite · **24/24** in the new browser suite ·
+74,480 rubrics · 735,460 graded links · 669 remedies · 41 chapters · 0 runtime dependencies.
+
+---
+
 ## v1.1.0 — 2026-11-01 · *the offline release*
 
 The version that made the offline claim true, and gave the project a face of its own.

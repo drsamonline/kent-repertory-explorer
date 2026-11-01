@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.2.0 — 2026-11-01 · *the enhancements release*
+
+Everything in `ENHANCEMENTS.md` except two items, which that file names and explains. The work is one
+additive layer at the end of the app (and in `pipeline/app_template.html`), so the shipped build and
+its source stay in step.
+
+### Added
+- **Named cases.** A selector in the Case panel: switch, new, rename, delete. Each case keeps its own
+  rubrics and notes. The pre-1.2 single case is migrated on first load.
+- **Remedy → rubrics.** Click a remedy anywhere — a chip in a rubric, a row in the analysis — and see
+  every rubric it appears in, with the grade split, the chapters, and the 40 narrowest.
+- **Explain the ranking.** Click a remedy in the analysis for its score, its position, and every rubric
+  of *this* case marked covers or misses at which grade.
+- **Undo / redo** over add, remove, clear and note edits — `Ctrl+Z`, `Ctrl+Shift+Z`, 50 deep.
+- **Chapter drill-down** — chapter → sub-branches with counts → search inside a branch.
+- **"Did you mean"** — edit-distance-1 against the repertory's own vocabulary when a spelling finds
+  nothing.
+- **Deep links** `#rubric=<id>` and `#remedy=<abbr>`, joining `#q=`, `#tab=` and `#demo=`.
+- **Offline indicator, update prompt and install prompt** — `Offline ready`, `New version — reload`,
+  and `Install` when the browser offers it. `registration.update()` now runs on every load.
+- **A build stamp in the app's footer** — `build 1.2.0 · 2026-11-01` — so "am I on the new one?" is
+  answerable from inside the installed app, where there is no URL bar.
+- **A print sheet that is the case, not the interface** — name, date, rubrics, notes, analysis, matrix.
+
+### Changed
+- **Search narrows incrementally.** While the query only grows and the filters do not change, a
+  keystroke filters the previous result set instead of all 74,480 rubrics: the scan measured
+  **9.1 ms → 1.5 ms**, and a keystroke late in a word is **1.2–1.9 ms**. The first keystroke of a
+  broad word still costs ~35 ms, because that cost is sorting tens of thousands of matches — measured,
+  written down, left open.
+- **Results arrive 60 at a time** with `Show N more`, instead of 400 cards rendered at once.
+- **The app follows the system theme on its first paint.** It used to open dark regardless; the
+  toggle still overrides and is remembered.
+- **The result list is a listbox** — `role`, `aria-activedescendant`, `aria-expanded`, and an
+  accessible label on every grade chip.
+- **The retrofit strip is theme-aware** and no longer sits on the status line on a phone.
+
+### Fixed
+- The app opened in dark mode even on a device set to light, because `themeName()` defaulted to
+  `'dark'` instead of asking `prefers-color-scheme`.
+- The floating tools strip hardcoded `#111` and stayed dark in the light and high-contrast themes.
+
+### Measured
+14/14 in the dependency-free suite · 24/24 in the browser suite · 74,480 rubrics · 735,460 graded
+links · 669 remedies · 41 chapters · 0 runtime dependencies.
+
 ## 1.1.0 — 2026-11-01
 
 - **◈ The offline claim is now true.** `Loom.pwa.register()` was defined and never called; the

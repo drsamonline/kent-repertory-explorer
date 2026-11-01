@@ -59,16 +59,25 @@ Every link carries a grade, taken from the typography of the printed repertory:
   are ranked **narrowest first**, because the rubrics with three remedies are the ones that narrow a case.
 - **Chapter browse** across all 41 chapters, with rubric counts.
 - **Filters** — narrow-only with an adjustable threshold, sort by narrowest / broadest / A–Z / chapter.
-- **Case builder** — add rubrics, attach a note to each, remove or clear.
+- **Named cases** — keep several at once: switch, rename, delete. Each holds its own rubrics and notes.
+- **Case builder** — add rubrics, attach a note to each, remove or clear. **Undo/redo** with `Ctrl+Z`.
 - **Analysis** — remedies ranked by the sum of grades and rubrics covered; minimum-grade filter;
   "cover all rubrics"; exclude a remedy (it stays visible, struck through, and can be brought back).
 - **Matrix** — remedy × rubric grid showing each grade.
+- **Why a remedy ranks** — click it in the analysis to see every rubric of *this* case it covers, at
+  which grade, and which it misses.
+- **Remedy → rubrics** — click any remedy chip to see every rubric it appears in, by chapter and grade.
+- **Chapter drill-down** — browse a chapter, then its branches, then search inside one.
+- **"Did you mean"** — a spelling that finds nothing is matched against the repertory's own vocabulary.
 - **Export** — plain text, CSV, JSON, copy to clipboard, and a clean print/PDF sheet.
-- **Deep links** — `#q=anxiety+night`, `#tab=analysis`, `#demo=case`. No router, no dependency;
-  this is what drives the live demo on the landing page.
+- **Deep links** — `#q=anxiety+night`, `#tab=analysis`, `#demo=case`, `#remedy=Ars`, `#rubric=<id>`.
+  No router, no dependency; this is what drives the live demo on the landing page.
 - **Themes** — dark, light, high-contrast. **Keyboard-first** with `/`, `↑ ↓`, `Enter`, `c`, `a`, `m`, `t`, `Esc`.
 - **Offline-first** — one self-contained HTML file, a manifest at the right path and a service worker
-  that precaches the app and serves the HTML network-first, so a release lands on the next visit.
+  that precaches the app and serves the HTML network-first, so a release lands on the next visit. The
+  header says `Offline ready` once the app is cached, and offers `New version — reload` when one lands.
+- **A print sheet that is the case** — rubrics, notes, analysis and matrix, without the interface.
+- **A build stamp in the footer**, so "am I on the new one?" is answerable from inside the app.
 - **Case persists** in local storage; notes included.
 
 ## Using it
@@ -105,6 +114,8 @@ scripts/badges.py             draws the SVG badges — locally, no image service
 scripts/icons.mjs             rasterises icon.svg to PNG sizes and the OG card
 scripts/ico.py                packs those PNGs into icon.ico for the Windows EXE
 scripts/shot.sh               screenshots the landing page and the app
+tests/retrofit-web-kit.test.js  the dependency-free suite (14)
+tests/enhancements.test.mjs   the optional browser suite (24, needs puppeteer-core)
 ENHANCEMENTS.md               what could be built next, all of it offline
 RELEASES.md                   how a release is cut, and what each icon means
 ```
@@ -130,12 +141,22 @@ python3 -m http.server -d docs 8000
 ## Tests
 
 ```bash
-node tests/retrofit-web-kit.test.js     # 14/14 passed
+node tests/retrofit-web-kit.test.js     # 14/14 passed — no dependencies, no build, no network
 ```
 
 No dependencies, no build step, no network: node's `vm` and `zlib` are enough to run the app's
 storage layer and to prove the embedded repertory still decompresses and still declares
 74,480 rubrics / 735,460 links / 669 remedies.
+
+There is a second, **optional** suite that drives a real Chromium and checks the enhancement layer
+end to end — 24 assertions covering search narrowing, undo, named cases, the remedy views, the
+drill-down and the deep links. It is the one thing here that needs an install, and it is a
+development tool only:
+
+```bash
+npm i puppeteer-core
+CHROME=/usr/bin/chromium node tests/enhancements.test.mjs    # 24/24 passed
+```
 
 ## Data
 

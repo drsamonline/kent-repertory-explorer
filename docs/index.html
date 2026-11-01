@@ -380,14 +380,17 @@ footer a:hover{color:var(--accent);text-decoration:underline}
       <div class="c">
         <span class="num">02</span>
         <h3>Build the case as you read</h3>
-        <p>Add a rubric, attach a note to it, remove it, clear the case. It is saved in this browser and
-          included in every export — text, CSV, JSON, clipboard, or a clean print sheet.</p>
+        <p>Add a rubric, attach a note to it, remove it, clear the case — and keep <b>more than one
+          case</b>, each named and separate. It is saved in this browser and included in every export:
+          text, CSV, JSON, clipboard, or a print sheet that is the case itself.</p>
       </div>
       <div class="c">
         <span class="num">03</span>
         <h3>Repertorise by grade</h3>
         <p>Remedies ranked by the sum of grades and the rubrics covered, with a minimum-grade filter,
-          “cover all rubrics”, an exclude that strikes through instead of hiding, and a remedy × rubric matrix.</p>
+          “cover all rubrics”, an exclude that strikes through instead of hiding, a remedy × rubric
+          matrix — and, on any remedy, <b>why it ranks there</b>: which of your rubrics it covers, and
+          which it misses.</p>
       </div>
     </div>
   </div>
@@ -535,11 +538,17 @@ python3 -m http.server -d docs 8000
           <tr><td><code>#q=anxiety+night</code></td><td class="v small">run a search</td></tr>
           <tr><td><code>#tab=analysis</code></td><td class="v small">open a panel</td></tr>
           <tr><td><code>#demo=case</code></td><td class="v small">a worked case</td></tr>
+          <tr><td><code>#remedy=Ars</code></td><td class="v small">every rubric for a remedy</td></tr>
+          <tr><td><code>#rubric=1234</code></td><td class="v small">one rubric, in full</td></tr>
         </tbody>
       </table>
       <p class="note" style="margin-top:16px">Panels: <code>search</code>, <code>browse</code>,
         <code>case</code>, <code>analysis</code>, <code>matrix</code>. Scenes: <code>search</code>,
         <code>narrow</code>, <code>case</code>, <code>analysis</code>.</p>
+      <p class="note" style="margin-top:14px">New in 1.2: <b>named cases</b> — switch, rename and keep
+        several at once; click any remedy to see <b>every rubric it appears in</b>, or to see exactly
+        <b>which of your rubrics it covers and which it misses</b>; <b>undo</b> with Ctrl+Z; and a print
+        sheet that is the case, not the interface.</p>
     </div>
   </div>
 </section>
@@ -588,7 +597,7 @@ python3 -m http.server -d docs 8000
       </div>
     </div>
     <div class="stampft">
-      <span id="build">build 1.1.0 · 2026-11-01</span>
+      <span id="build">build 1.2.0 · 2026-11-01</span>
       <span>74,480 rubrics · 735,460 graded links · 669 remedies · 41 chapters</span>
       <span>no cookies · no analytics · no network</span>
     </div>

@@ -1,149 +1,80 @@
 # Enhancements
 
-Everything below is achievable **offline, with no internet and no external dependency**: no library,
-no CDN, no service, no model. Where an item needs an algorithm, the algorithm is written in the repo.
-Ordered by what it buys the practitioner, not by what is fun to build.
+**Status: applied in 1.2.0, except two — and this file says which and why.**
+Everything below is achievable offline, with no internet and no external dependency: no library, no
+CDN, no service, no model. Where an item needed an algorithm, the algorithm is in the repo.
 
-Effort is a rough guide for one careful pass: **S** ≈ an afternoon, **M** ≈ a day, **L** ≈ several days.
+The work landed as one *enhancement layer* (`docs/play/index.html`, at the end of the file, and the
+same block in `pipeline/app_template.html`) rather than as edits through the body of a 2 MB single
+file — extending the app's own functions keeps the shipped build and its source in step.
 
----
+## Applied
 
-## P0 — the offline promise, and things that are visibly wrong
+| # | Enhancement | What was actually built | Verified by |
+|---|---|---|---|
+| 1 | **Offline indicator + update prompt** | `Offline ready` chip once a worker controls the page; `New version — reload` when a new worker installs; `registration.update()` on every load | manual, over http |
+| 2 | **Build stamp in the app** | `build 1.2.0 · 2026-11-01` in the app's footer, beside the source line | functional test |
+| 3 | **Search stops rescanning everything** | Incremental narrowing: while the query only grows and the filters do not change, the next keystroke filters the previous result set instead of all 74,480 rubrics | measured, below |
+| 4 | **"Did you mean"** | On a zero-result query of 4+ letters, edit-distance-1 against a word list built from the repertory's own vocabulary | functional test (`consolaton` → `consolation`) |
+| 5 | **Remedy → rubrics** | Click any remedy chip, in a rubric or in the analysis, to see every rubric it appears in: count, grade split, chapters, and the 40 narrowest | functional test |
+| 6 | **More than one case** | Named cases with a selector in the Case panel — switch, new, rename, delete; each keeps its own rubrics and notes; the pre-1.2 single case is migrated on first load | functional test |
+| 7 | **Explain the ranking** | Click a remedy in the analysis to see the score, the position, and every rubric of *this* case marked covers or misses at which grade | functional test |
+| 8 | **Undo / redo** | Snapshot stack (50 deep) over add, remove, clear and note edits; `Ctrl+Z` / `Ctrl+Shift+Z` | functional test |
+| 9 | **Chapter drill-down** | Browse → chapter → its sub-branches with counts → search inside a branch | functional test (41 chapters, 384 Abdomen branches) |
+| 10 | **Progressive results** | 60 cards, then `Show N more` in steps, instead of 400 at once | functional test (60 → 120) |
+| 11 | **Accessible result list** | `role="listbox"` + `option`, `aria-activedescendant`, `aria-expanded`, and an accessible label on every grade chip | functional test |
+| 12 | **Print sheet is the case** | A print stylesheet that drops the interface and prints the case: name, date, rubric list, notes, analysis, matrix | print-media render |
+| 13 | **Install prompt** | `beforeinstallprompt` → an `Install` chip that disappears once used | manual |
+| 14 | **Deep links** | `#q=`, `#tab=`, `#demo=` (1.1.0) plus `#rubric=<id>` and `#remedy=<abbr>` | functional test |
+| 15 | **Theme on first paint** | Follows `prefers-color-scheme` until the reader chooses; the toggle still wins | functional test (light emulated) |
+| 16 | **The retrofit strip** | Theme-aware from the app's own variables, and lifted clear of the status line on a phone | screenshots |
+| 17 | **Releases with icons** | `icon.ico` for the EXE, PNG sizes for the APK and manifest, `og.png` social card, `RELEASES.md` | `scripts/ico.py`, `scripts/icons.mjs` |
 
-### 1. The service worker was never registered, and the manifest pointed at a file that does not exist · **S**
-The app defined `Loom.pwa.register()` and never called it; the manifest's `start_url` was
-`./app.html`, which does not exist under `docs/play/`; and `sw.js` precached `./app.html` too, so
-`cache.addAll()` rejected and the catch swallowed it. **Net effect: an app called "offline-first" never
-cached itself.** Fixed in 1.1.0 — `docs/play/manifest.webmanifest` with `start_url: "./"`,
-`scope: "./"`, the worker registered at `../sw.js` (one scope for the whole site), `CORE` corrected,
-`allSettled` instead of `addAll`, and `CACHE` bumped.
+## Measured, not asserted
 
-**Still to do:** an "Available offline" indicator, and an update prompt — when a new worker is
-waiting, offer *reload to update* instead of letting `skipWaiting` swap it silently under the reader.
+Timed in the browser on the real 74,480 rubrics (headless Chromium, desktop):
 
-### 2. A build stamp in the app itself · **S**
-The landing page prints `build 1.1.0 · 2026-11-01`; the app's footer prints the dataset line but not
-the build. "Am I on the new one?" should be answerable from inside the app, especially in the
-installed PWA where there is no URL bar.
+| | before 1.2.0 | 1.2.0 |
+|---|---|---|
+| the scan for a two-word query | **9.1 ms** | **1.5 ms** |
+| a keystroke late in a word (`weeping consolati…`) | 9.1 ms + sort | **1.2–1.9 ms** |
+| the first keystroke of a broad word (`w`) | 9.1 ms + sort of ~60,000 | ~35 ms — **unchanged** |
 
-### 3. Search is a linear scan on every keystroke · **M**
-`runSearch()` walks all 74,480 rubrics and `indexOf`-es every term on each `input` event. It is fast
-enough on a desktop because the data is in memory, but it is O(n) per key and it blocks the main
-thread. A prebuilt **inverted index** — term → rubric ids, plus a prefix table — built once at boot
-(offline, in the browser) would make each keystroke O(matches) and unlock the next two items.
+That last row is honest and matters: the first letter of a broad word matches tens of thousands of
+rubrics, and the cost there is *sorting them*, not scanning them. Fixing it needs a bounded top-k
+selection — and that has to keep the full candidate set for the narrowing above, so it is not the
+one-liner it looks like. Left open deliberately, with the number on the table.
 
-### 4. Typo tolerance and abbreviation expansion · **M** (needs 3)
-A practitioner types `thirstles`, `conciously`, `ameliorat`. Add edit-distance-1 matching against the
-index and a small abbreviation table (`amel.` / `agg.` / `r.` / `l.` / `>`, `<`). No model, no
-dependency: a Levenshtein pass over candidate terms from the prefix table is a few dozen lines.
+## Deferred — and why
 
-### 5. Reverse lookup: "which rubrics is this remedy in?" · **M** (needs 3)
-The dataset already holds remedy → links. The inverse index gives the other direction: pick `Ars.`
-and see every rubric it appears in, by grade and chapter — the question a student asks most often
-after an analysis, and the one thing the app cannot currently answer.
+**18 · Elimination and the other methods.** Kent's grade-sum is implemented; Boenninghausen/Boger
+weighting and eliminative analysis are not. This is the one item I will not guess at: the difference
+between the methods is a clinical convention, and a ranking that quietly uses the wrong one is worse
+than no ranking. It needs the method written down by a practitioner — the formulas, the tie-breaks,
+what "eliminated" means for a remedy that fails one high-grade rubric — and then it is a day's work on
+data that is already in `caseList[].links`. **What is needed from you: the definition.**
 
-### 6. The floating retrofit strip overlaps the app and ignores the theme · **S**
-`Save my data · Restore · Undo · ?` floats over the status line, hardcodes `background:#111` so it
-stays dark in the light and high-contrast themes, and duplicates the app's own Export and `?`.
-Dock it into the header (or behind the `?` sheet) and wire it to the theme variables. It has been
-nudged above the status line in 1.1.0; the duplication is still there.
+**19 · Smaller payload.** The 1.9 MB is gzipped JSON, base64'd into the page. A column-oriented
+form (separate arrays for paths, link targets and grades, plus a path-prefix dictionary) would cut it
+before gzip, and the base64 layer could go for the web build if the data were a sibling `.json.gz`.
+That requires rebuilding the dataset — `pipeline/extract.py` needs the OOReP PostgreSQL dump and
+`build_app.py` needs the resulting `kent.json`, neither of which is in the repo. **What is needed:
+the dump, or the JSON.**
 
----
+## Still worth doing (not in the 1.2.0 list)
 
-## P1 — clinical value
-
-### 7. More than one case · **M**
-Storage holds a single case under one key. A practitioner runs several. Give cases names, dates and a
-list — still `localStorage` or IndexedDB, still nothing leaving the device — with the current case
-kept as "today".
-
-### 8. Explain the ranking · **M**
-Analysis shows score and coverage. Add a per-remedy panel: which of the case's rubrics it covers, at
-which grade, which it misses entirely, and how its rank moved as the last rubric was added. That is
-what makes a shortlist defensible to a teacher — and it is all already in `caseList[].links`.
-
-### 9. Elimination and the other methods · **L**
-Kent's grade-sum is one method. Boenninghausen/Boger weighting, and the eliminative analysis that
-drops remedies which fail a high-grade rubric, are the same data read differently. Offer the method as
-a switch, and show the *difference* between them rather than a single number — this is the most
-valuable thing the app could do that no book on the shelf can.
-
-### 10. The case as a document · **M**
-One printable sheet: the case's rubrics in path order with their notes, the analysis table, the matrix,
-and the remedies struck through that were excluded — then print to PDF, or download as a self-contained
-HTML file. No PDF library: `window.print()` with a print stylesheet, which is what the "print sheet"
-already half-does.
-
-### 11. Storage that survives · **S**
-Ask for `navigator.storage.persist()` once the first case is saved, and move cases to IndexedDB
-(`localStorage` is ~5 MB and synchronous). A clinical note that a browser evicts is worse than no app.
-
-### 12. Undo/redo in the app's own UI · **S**
-The retrofit strip has a global `__undo`; the case editor does not. Wrap `caseList` mutations in a
-small command stack with `Ctrl+Z` / `Ctrl+Shift+Z` — the app already rebinds every other key.
-
----
-
-## P2 — reach and polish
-
-### 13. Drill-down by chapter · **S**
-`d.tree` is a real hierarchy, but the app flattens it to paths and only offers a chapter filter.
-A breadcrumb — chapter → sub-rubric → rubric — would let someone browse the way the book is read.
-
-### 14. Windowing the result list · **M**
-`renderList()` writes up to 400 rubric cards into the DOM at once, each with up to 60 remedy chips.
-Render a window of ~40 and recycle on scroll: fewer nodes, no layout storms on a phone.
-
-### 15. Accessibility of the result list · **M**
-The results are `div`s with click handlers. Make the list a `listbox` with `aria-activedescendant`,
-announce the result count on each search (`role="status"` already exists for the status line), and
-give the grade chips an accessible label ("grade 3, strongest") rather than relying on colour.
-
-### 16. Light theme on first paint · **S**
-The app defaults to `LS.get('theme','dark')` — dark, regardless of the system preference. Follow
-`prefers-color-scheme` for the first paint and keep the toggle as the override; the landing page
-already does this.
-
-### 17. Deep links, extended · **S**
-`#q=`, `#tab=` and `#demo=` shipped in 1.1.0. Two more are cheap and useful: `#rubric=<id>` to open a
-single rubric, and `#remedy=<abbr>` once item 5 exists — so a teacher can send a link to a case, a
-rubric or a remedy, and it opens on the device with no network.
-
-### 18. Smaller payload · **M**
-The payload is 1.9 MB of gzipped JSON, base64'd (which inflates it by a third). A column-oriented
-form — separate arrays for paths, link targets and link grades, and a path-prefix dictionary —
-should cut the JSON meaningfully before gzip, and the base64 layer could go entirely if the data were
-served as a sibling `.json.gz` for the web build (keeping the single file for the portable one).
-
-### 19. Install prompt · **S**
-`beforeinstallprompt` → a quiet "install this on your device" line, only when the browser offers it.
-On Android the APK already exists; in the browser, installing is the difference between a website and
-an app that opens with the radio off.
-
----
-
-## Releases, with icons
-
-The release surface has its own set of improvements, and they are all local files:
-
-- **Icons for the binaries.** `scripts/icons.mjs` rasterises `docs/assets/icon.svg` to 16/32/48/64/192/256/512,
-  and `scripts/ico.py` packs the small ones into `docs/assets/icon.ico` for the Windows EXE — so the
-  download is not a blank page icon in Explorer. The APK takes `icon-512.png`; the PWA takes `icon.svg`
-  plus the PNGs in its manifest.
-- **A social card.** `docs/assets/og.png` (1200×630) generated from the same icon and wordmark, wired
-  to `og:image`, so a shared link shows the app rather than a grey rectangle. Generated locally — no
-  image service.
-- **Release notes that read the same every time.** `RELEASES.md` fixes an icon per kind of change
-  (added, fixed, changed, measured, removed) so a reader can scan a release in three seconds. See it
-  there; it is also the template for the next one.
-
----
+- **Storage in IndexedDB.** Cases still live in `localStorage` (~5 MB, synchronous). `navigator.storage.persist()`
+  is asked for on first save, which is the part that stops eviction; moving the store itself is a
+  migration, not a feature.
+- **A bounded top-k for the first keystroke** (see the table above).
+- **Windowing rather than stepping.** `Show more` bounds the DOM; recycling a fixed window on scroll
+  would be smoother, and would need the sort question above solved first.
 
 ## Deliberately not doing
 
 - **No accounts, no sync, no telemetry.** Not a roadmap item that is waiting; a boundary.
 - **No LLM repertorisation.** A model that ranks remedies is a model that invents them. The grades are
-  the printed grades, and the reasoning stays visible.
+  the printed grades, and the reasoning stays visible — that is what item 7 above is for.
 - **No CDN, ever, not even for a font.** A webfont is a network request; the type is the system's.
 - **No auto-updating data.** The dataset is fixed and cited. A new edition is a new release with a new
   citation, not a silent refresh.
