@@ -484,7 +484,10 @@ function renderList(terms){
       + '<div class="act"><button class="addbtn'+(isin?' in':'')+'" data-add="'+r.id+'">'+(isin?'Added':'Add')+'</button></div></div>'
       + '<div class="rem">'+rem+'</div></div>';
   }).join('');
-  const sel=wrap.querySelector('.rub.sel'); if(sel) sel.scrollIntoView({block:'nearest'});
+  const sel=wrap.querySelector('.rub.sel');
+  /* embedded, scrollIntoView also scrolls the parent page — which yanked the
+     landing page past its own hero every time the demo rendered */
+  if(sel && window.self===window.top) sel.scrollIntoView({block:'nearest'});
 }
 
 /* ---------- chapters ---------- */
@@ -551,15 +554,15 @@ function refreshRight(){
     + '<label><input type="checkbox" id="fc"'+(coverAll?' checked':'')+'> cover all '+n+'</label>'
     + '<span class="sp" style="flex:1"></span><span>'+act.length+' remedies'
     + (list.length-act.length? ' · '+excluded.size+' excluded':'')+'</span></div>';
-  h+='<table class="an"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th><th></th></tr></thead><tbody>';
+  h+='<table class="an anlist"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th><th></th></tr></thead><tbody>';
   list.slice(0,150).forEach((o,i)=>{
     const R=REMEDIES[o.ri];
     const cov = o.cover===n ? '<span style="color:var(--ok);font-weight:600">'+o.cover+'/'+n+'</span>' : o.cover+'/'+n;
     const rank=o.ex?'·':(++rankN);
     h+='<tr'+(o.ex?' class="excluded"':'')+'><td class="num">'+rank+'</td>'
-      +'<td data-rem="'+o.ri+'"><b>'+esc(R[0])+'</b> <span style="color:var(--dim)">'+esc(R[1])+'</span></td>'
+      +'<td data-rem="'+o.ri+'"><b>'+esc(R[0])+'</b> <span class="rxfull" style="color:var(--dim)">'+esc(R[1])+'</span></td>'
       +'<td class="num"><b>'+o.score+'</b></td><td class="num">'+cov+'</td>'
-      +'<td style="width:80px"><div class="scbar" style="width:'+Math.max(4,Math.round(78*o.score/max))+'px"></div></td>'
+      +'<td class="barcell" style="width:80px"><div class="scbar" style="width:'+Math.max(4,Math.round(78*o.score/max))+'px"></div></td>'
       +'<td><button class="xbtn" data-ex="'+o.ri+'" title="'+(o.ex?'Include again':'Exclude this remedy')+'">'+(o.ex?'↺':'⊘')+'</button></td></tr>';
   });
   h+='</tbody></table>';
@@ -722,7 +725,10 @@ async function boot(){
   prog(100,'Ready'); await breathe();
   $('#load').classList.add('done');
   $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters · search to begin';
-  $('#q').focus();
+  /* never grab focus when embedded: focusing inside the frame makes the
+     parent scroll the frame into view, so the landing page jumped past
+     its own hero on load */
+  if(window.self===window.top) $('#q').focus();
   if(!LS.get('seen',false) && !location.hash){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
 }
 
@@ -939,6 +945,71 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 .chsec{grid-column:1/-1;font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--dim2);
        margin:10px 0 2px}
 #printhead{display:none}
+
+/* ── responsive ──────────────────────────────────────────────────────────
+   Three widths were wrong when measured: the analysis table pushed the
+   exclude button off the panel between 1024 and 1440, the header wrapped to
+   three rows at 320, and remedy names broke mid-word when the columns ran
+   out. Large screens had the opposite problem — 1,100 px of empty card. */
+@media(min-width:1500px){
+  #listwrap,#toolbar{max-width:940px;margin-left:auto;margin-right:auto}
+  #q{max-width:640px}
+}
+/* the score bar is decoration; it must never push a control out of reach */
+/* A fixed layout makes the columns share the panel instead of overflowing it:
+   between 1024 and 1440 the exclude button used to sit past the edge. */
+.anlist{table-layout:fixed;width:100%}
+.anlist th:nth-child(1),.anlist td:nth-child(1){width:34px}
+.anlist th:nth-child(3),.anlist td:nth-child(3){width:68px}
+.anlist th:nth-child(4),.anlist td:nth-child(4){width:56px}
+.anlist th:nth-child(5),.anlist td:nth-child(5){width:84px}
+.anlist th:nth-child(6),.anlist td:nth-child(6){width:36px}
+.anlist td{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1300px){
+  .anlist th:nth-child(5),.anlist td:nth-child(5){display:none}
+}
+/* The app hid the first and last columns below 780 px to save space — which
+   removed the only way to exclude a remedy on a phone. The rank can go; the
+   control cannot. */
+@media(max-width:780px){
+  table.anlist th:last-child,table.anlist td:last-child{display:table-cell}
+  .anlist th:last-child,.anlist td:last-child{width:40px}
+  table.anlist th:nth-child(1),table.anlist td:nth-child(1){display:none}
+}
+/* the app set word-break:break-word on the remedy cell, which broke names
+   mid-word ("Arsenicu m Album") — break on spaces, not on letters */
+table.an td:nth-child(2){word-break:normal;overflow-wrap:break-word;hyphens:none}
+
+/* when space runs out, the long remedy name goes before the abbreviation */
+@media(max-width:560px){
+  .an .rxfull{display:none}
+  .an td{overflow-wrap:normal;word-break:normal;hyphens:none}
+  header{gap:6px;padding:8px 10px}
+  .brand h1{font-size:13px}
+  .brand small{display:none}
+  .brand .mark{width:28px;height:28px;font-size:14px}
+  .hbtn{padding:7px 9px}
+  #q{padding:9px 58px 9px 32px}
+  /* the floating backup strip covers the status line on a phone; the app's
+     own Export covers the case, and a full-device backup is a desk task */
+  #__tools{display:none!important}
+}
+@media(max-width:420px){
+  header{flex-wrap:wrap}
+  #qwrap{order:3;flex-basis:100%}
+}
+@media(max-width:380px){
+  .brand h1{display:none}      /* the mark is the identity at this width */
+}
+/* touch: 13 px checkboxes and 26 px selects are not targets */
+input[type=checkbox]{width:15px;height:15px}
+@media(max-width:900px){
+  input[type=checkbox]{width:18px;height:18px}
+  select,.hbtn{min-height:34px}
+  #mtabs button{min-height:38px}
+}
+/* the numeric columns were 10.5 px — legible on a retina screen, not on a phone */
+.an .num,.anlist .num{font-size:11.5px}
 
 /* The retrofit strip is useful (a whole-device backup) but it was hardcoded dark
    and sat on the status line on a phone. Theme it from the app's own variables
@@ -1542,7 +1613,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       setTab('search'); runSearch();
       var el = document.getElementById('rub-' + r.id);
       if (!el && LIMIT < 240) { LIMIT = 240; runSearch(); el = document.getElementById('rub-' + r.id); }
-      if (el) { el.classList.add('open'); el.scrollIntoView({ block: 'center' }); }
+      if (el) { el.classList.add('open'); if (window.self === window.top) el.scrollIntoView({ block: 'center' }); }
       rubricModal(r.id);
     } else if (rx) {
       var want = norm(rx), ri = -1, i;
@@ -1705,8 +1776,10 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       eliminate = e.target.checked; LS.set('eliminate', eliminate); refreshRight();
     };
 
+    /* the column says what it is; the note above says which arithmetic produced
+       it — "Score 3·2·1" did not fit the column at any width */
     var th = document.querySelector('#rbody .an thead th.num');
-    if (th) th.textContent = 'Score ' + METHODS[method].label;
+    if (th) th.textContent = 'Score';
   }
 
   /* ── wire it up once the app has booted ───────────────────────────── */
