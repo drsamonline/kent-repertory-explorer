@@ -1,7 +1,7 @@
 {
-  "name": "Kent's Repertory Explorer",
-  "short_name": "Kent Repertory",
-  "description": "Offline, searchable Kent's Repertory (1897) with graded remedies and case repertorisation.",
+  "name": "Repertorium Publicum Explorer",
+  "short_name": "Repertorium",
+  "description": "Offline explorer for Repertorium Publicum (2008), an open Kent-derived repertory: 74,480 rubrics, 735,460 graded remedy links, case builder and grade-weighted repertorisation.",
   "start_url": "./app.html",
   "display": "standalone",
   "background_color": "#0d1117",

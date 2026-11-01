@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.1.0 — 2026-11-01
+
+- **◈ The offline claim is now true.** `Loom.pwa.register()` was defined and never called; the
+  manifest's `start_url` was `./app.html`, which does not exist under `docs/play/`; and `sw.js`
+  precached the same missing file, so `cache.addAll()` rejected and the catch swallowed it. The app
+  never cached itself. Now: a manifest beside the app (`start_url: "./"`, `scope: "./"`), the worker
+  registered at `../sw.js` for one site-wide scope, `CORE` listing files that exist,
+  `Promise.allSettled`, and `CACHE` bumped to `rpe-v5`.
+- **✚ Deep links** — `#q=`, `#tab=`, `#demo=` — applied after boot and on `hashchange`. No router, no
+  dependency. The landing page's guided demo drives the app with them.
+- **✚ A landing page of its own** — printed-register design (paper, ink, one vermilion accent), light
+  as the base palette, system preference for the first paint, a toggle under its own storage key, and
+  the real app embedded in a frame behind a poster screenshot.
+- **✚ Badges and icons generated locally** — `scripts/badges.py`, `scripts/icons.mjs`,
+  `scripts/ico.py`. The README no longer points at an image service.
+- **✓ The last place the wrong attribution survived** — both manifests said *Kent's Repertory (1897)*.
+  It is Repertorium Publicum (2008).
+- **✓ The floating tools strip** covered the status line and hardcoded a dark background in every
+  theme; it now sits above the line.
+- **✎ The README** leads with badges, separates the two licences, and documents the real file layout.
+- **⚑ Measured:** 14/14 tests passing · 74,480 rubrics · 735,460 links · 669 remedies · 41 chapters ·
+  1.9 MB · 0 runtime dependencies.
+
 ## 1.0.0 — 2026-10-25
 
 - **Licence: PolyForm Noncommercial 1.0.0.** Every repository now carries the canonical text

@@ -1,19 +1,26 @@
 # Repertorium Publicum Explorer
 
-[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-2e7d32)](LICENSE)
+![offline: no network](docs/assets/badge-offline.svg)
+![deps: 0 runtime](docs/assets/badge-deps.svg)
+![tests: 14 passing](docs/assets/badge-tests.svg)
+![rubrics: 74,480](docs/assets/badge-rubrics.svg)
+![payload: 1.9 MB, one file](docs/assets/badge-size.svg)
+![licence: PolyForm Noncommercial 1.0.0](docs/assets/badge-licence.svg)
+
+**A repertory you can search like a ledger.** 74,480 rubrics and 735,460 graded remedy links from
+**Repertorium Publicum** (2008) — the printed three grades intact, a case builder, and grade-weighted
+repertorisation — in one HTML file that runs with no server, no account and no network.
+
+**[Open the repertory →](https://drsamonline.github.io/kent-repertory-explorer/play/index.html)** ·
+[the landing page](https://drsamonline.github.io/kent-repertory-explorer/) ·
+[the data](https://github.com/drsamonline/homoeopathic-materia-medica-repertory-json) ·
+[the source](pipeline/)
 
 <!-- shot:start -->
 
 ![Screenshot](docs/shot.png)
 
 <!-- shot:end -->
-
-An **offline, single-file** repertory explorer for **Repertorium Publicum** (2008) — an open,
-**Kent-derived** repertory — with the printed three-grade system intact, a case builder, and
-grade-weighted repertorisation.
-
-**[Open the repertory →](https://drsamonline.github.io/kent-repertory-explorer/)** · no server,
-no backend, no account, no API calls. Everything runs in the browser; nothing you type leaves the device.
 
 ---
 
@@ -25,7 +32,8 @@ The data is **Repertorium Publicum** by **Vladimir Polony (2008)**, published as
 It is **not** Kent's *Repertory of the Homoeopathic Materia Medica*, 1897 first edition. It has its
 own chapter structure — separate *Clinical*, *Appetite*, *Blood* and *Heart & Circulation* chapters,
 which Kent does not have — and its own additions. Earlier releases of this app described it as Kent
-1897; that was wrong, and it has been corrected throughout.
+1897; that was wrong, and it has been corrected throughout: this README, the page, the app's own
+footer and both manifests.
 
 ## What's inside
 
@@ -35,6 +43,7 @@ which Kent does not have — and its own additions. Earlier releases of this app
 | Graded remedy links | **735,460** |
 | Remedies | **669** |
 | Chapters | **41** |
+| The whole app | **one 1.9 MB HTML file** (gzip + base64, decompressed in the browser) |
 
 Every link carries a grade, taken from the typography of the printed repertory:
 
@@ -55,8 +64,11 @@ Every link carries a grade, taken from the typography of the printed repertory:
   "cover all rubrics"; exclude a remedy (it stays visible, struck through, and can be brought back).
 - **Matrix** — remedy × rubric grid showing each grade.
 - **Export** — plain text, CSV, JSON, copy to clipboard, and a clean print/PDF sheet.
+- **Deep links** — `#q=anxiety+night`, `#tab=analysis`, `#demo=case`. No router, no dependency;
+  this is what drives the live demo on the landing page.
 - **Themes** — dark, light, high-contrast. **Keyboard-first** with `/`, `↑ ↓`, `Enter`, `c`, `a`, `m`, `t`, `Esc`.
-- **Offline-first** — one self-contained HTML file, PWA manifest and a network-first service worker.
+- **Offline-first** — one self-contained HTML file, a manifest at the right path and a service worker
+  that precaches the app and serves the HTML network-first, so a release lands on the next visit.
 - **Case persists** in local storage; notes included.
 
 ## Using it
@@ -67,19 +79,63 @@ Every link carries a grade, taken from the typography of the printed repertory:
 4. Open **Analysis** to rank remedies across them.
 5. Treat the ranking as a **shortlist to study in the materia medica** — the repertory narrows, the materia medica decides.
 
+## Screenshots
+
+| landing page | the app |
+|---|---|
+| ![Landing page](docs/assets/landing-desktop.png) | ![The app](docs/assets/app-desktop.png) |
+
+Both are taken from the real pages by `scripts/shot.sh` — headless Chromium, no mock-ups. The app
+shot opens a deep link (`#demo=analysis`) so it shows a populated screen instead of an empty search box.
+
 ## Files
 
 ```
-app.html                     the whole application (one self-contained file)
-index.html                   landing page
-docs/                        the same site, for a Pages source pointed at /docs
-pipeline/extract.py          rebuilds kent.json from the OOReP database dump
-pipeline/build_app.py        embeds the data (gzip + base64) into app.html
-pipeline/app_template.html   the application source
+docs/index.html               the landing page — a printed register: paper, ink, one accent
+docs/play/index.html          the app (one self-contained file)
+docs/play/manifest.webmanifest  the app's manifest, start_url ./ and scope ./
+docs/sw.js                    the offline cache — precaches the landing page and the app
+docs/assets/                  icon.svg, icon.ico, icon-*.png, badge-*.svg, screenshots
+app.html                      the same app at the repo root, for the single-file distribution
+index.html                    the same landing page at the repo root
+pipeline/extract.py           rebuilds kent.json from the OOReP database dump
+pipeline/build_app.py         embeds the data (gzip + base64) into app.html
+pipeline/app_template.html    the application source
+scripts/badges.py             draws the SVG badges — locally, no image service
+scripts/icons.mjs             rasterises icon.svg to PNG sizes and the OG card
+scripts/ico.py                packs those PNGs into icon.ico for the Windows EXE
+scripts/shot.sh               screenshots the landing page and the app
+ENHANCEMENTS.md               what could be built next, all of it offline
+RELEASES.md                   how a release is cut, and what each icon means
 ```
 
 `app.html` is built by `build_app.py`, which injects the repertory — gzipped and base64-encoded —
-into the template. The browser decompresses it with `DecompressionStream`. The payload is ~1.9 MB.
+into the template. The browser decompresses it with `DecompressionStream`.
+
+**Nothing here is fetched.** No CDN, no web font, no badge service, no analytics. The badges are
+drawn by `scripts/badges.py` and committed; an offline-first repo that needs the network to describe
+itself has broken its own rule.
+
+## Run it
+
+```bash
+# the shortest path — no server at all
+open docs/play/index.html
+
+# or serve it, so the service worker can cache it for offline use
+python3 -m http.server -d docs 8000
+# → http://localhost:8000/
+```
+
+## Tests
+
+```bash
+node tests/retrofit-web-kit.test.js     # 14/14 passed
+```
+
+No dependencies, no build step, no network: node's `vm` and `zlib` are enough to run the app's
+storage layer and to prove the embedded repertory still decompresses and still declares
+74,480 rubrics / 735,460 links / 669 remedies.
 
 ## Data
 
@@ -90,13 +146,13 @@ under `repertory/repertorium-publicum-2008/`.
 
 ## Licence
 
-**GNU GPL v3** for the whole work. The app embeds the *Repertorium Publicum* dataset, which is
-third-party material published under GPL v3, so the combined work is distributed under GPL v3.
-GPL v3 permits commercial use; it requires that derivative works stay under GPL v3 and that the
-source is made available.
+Two things are licensed here, and they are not the same thing.
 
-- [`LICENSE`](LICENSE) · [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt)
-- Embedded data: Repertorium Publicum (2008), Vladimir Polony — GPL v3, part of the OpenRep source code.
+- **The application code** — the HTML, the pipeline, the scripts — is released under
+  **PolyForm Noncommercial 1.0.0**, the canonical text in [`LICENSE`](LICENSE).
+- **The embedded data** — *Repertorium Publicum* (2008), Vladimir Polony — is **GPL v3**, as published
+  in the OpenRep source code. A build that embeds it carries that obligation with it, so read
+  [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt) before redistributing the combined file.
 
 Requests, not conditions: please credit Dr Sohil Momin and the source of the data.
 

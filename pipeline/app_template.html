@@ -6,6 +6,8 @@
 <meta name="color-scheme" content="dark light">
 <meta name="description" content="Offline explorer for Repertorium Publicum (2008) — an open, Kent-derived repertory. 74,480 rubrics, 735,460 graded remedy links. Search, build a case, repertorise.">
 <title>Repertorium Publicum Explorer — offline repertory</title>
+<link rel="manifest" href="manifest.webmanifest">
+
 <style>
 :root{
   --bg:#0a0e14;--bg2:#0e141c;--panel:#121a24;--panel2:#18222e;--panel3:#1e2a38;
@@ -720,7 +722,7 @@ async function boot(){
   $('#load').classList.add('done');
   $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters · search to begin';
   $('#q').focus();
-  if(!LS.get('seen',false)){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
+  if(!LS.get('seen',false) && !location.hash){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
 }
 
 /* ---------- events ---------- */
@@ -810,6 +812,102 @@ document.addEventListener('keydown',e=>{
 });
 
 boot();
+</script>
+
+<script>
+/* Offline: register the site's service worker (one scope for the whole site).
+ * It was defined but never called, so the app never actually cached itself. */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  addEventListener('load', function () {
+    navigator.serviceWorker.register('../sw.js').catch(function () {});
+  });
+}
+</script>
+
+<script>
+/* Deep links — no network, no dependency, no build step.
+ *
+ *   #q=anxiety+night      prefill the search and run it
+ *   #tab=case             open a panel (search | browse | case | analysis | matrix)
+ *   #demo=search|narrow|case|analysis   guided scenes, used by the landing page
+ *
+ * Applied after boot, and again on every hashchange, so the landing page can
+ * drive this app inside an iframe without reloading it. */
+(function () {
+  var tries = 0;
+
+  function booted() {
+    return typeof RUBRICS !== 'undefined' && RUBRICS.length > 0 &&
+      document.getElementById('load') &&
+      document.getElementById('load').classList.contains('done');
+  }
+
+  function setQ(terms) {
+    var q = document.getElementById('q');
+    q.value = terms;
+    q.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function addFirst(terms, n) {
+    setQ(terms);
+    var added = 0;
+    for (var i = 0; i < results.length && added < n; i++) {
+      if (!inCase(results[i].id)) { addRubric(results[i].id); added++; }
+    }
+    return added;
+  }
+
+  function clearCase() { caseList = []; saveCase(); refreshRight(); }
+
+  var TABS = { search: 'search', browse: 'browse', case: 'case', analysis: 'an', an: 'an', matrix: 'mx', mx: 'mx' };
+
+  function apply() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return;
+    var p = new URLSearchParams(h);
+    var demo = p.get('demo'), q = p.get('q'), tab = p.get('tab');
+
+    if (demo === 'search') {
+      setQ('anxiety night'); setTab('search');
+    } else if (demo === 'narrow') {
+      narrowOnly = true; narrowN = 6;
+      var cb = document.getElementById('narrow');
+      if (cb) { cb.checked = true; }
+      var rng = document.getElementById('narrowN');
+      if (rng) { rng.disabled = false; rng.value = 6; }
+      var out = document.getElementById('narrowV');
+      if (out) { out.textContent = '6'; }
+      setQ('weeping consolation'); setTab('search');
+    } else if (demo === 'case' || demo === 'analysis' || demo === 'matrix') {
+      clearCase();
+      addFirst('anxiety night', 1);
+      addFirst('thirstless', 1);
+      addFirst('weeping consolation', 1);
+      setRTab(demo === 'case' ? 'case' : demo === 'matrix' ? 'mx' : 'an');
+    } else if (q) {
+      setQ(q); setTab('search');
+    } else if (tab && TABS[tab]) {
+      if (TABS[tab] === 'search' || TABS[tab] === 'browse') setTab(TABS[tab]);
+      else setRTab(TABS[tab]);
+    }
+
+    /* a deep link is a deliberate arrival: do not cover it with the welcome sheet */
+    try { LS.set('seen', true); } catch (e) {}
+    if (window.closeModal) { try { closeModal(); } catch (e) {} }
+  }
+
+  function start() {
+    if (!booted()) {
+      if (++tries > 300) return;              // ~30 s, then give up quietly
+      return setTimeout(start, 100);
+    }
+    apply();
+    addEventListener('hashchange', apply);
+  }
+
+  if (document.readyState === 'loading') addEventListener('DOMContentLoaded', start);
+  else start();
+})();
 </script>
 </body>
 </html>
