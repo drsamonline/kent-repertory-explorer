@@ -6,6 +6,8 @@
 <meta name="color-scheme" content="dark light">
 <meta name="description" content="Offline explorer for Repertorium Publicum (2008) — an open, Kent-derived repertory. 74,480 rubrics, 735,460 graded remedy links. Search, build a case, repertorise.">
 <title>Repertorium Publicum Explorer — offline repertory</title>
+<link rel="manifest" href="manifest.webmanifest">
+
 <style>
 :root{
   --bg:#0a0e14;--bg2:#0e141c;--panel:#121a24;--panel2:#18222e;--panel3:#1e2a38;
@@ -328,7 +330,8 @@ body.light .backdrop{background:rgba(30,50,80,.35)}
   <div class="foot">
     <span id="footstat">—</span>
     <span class="sp" style="flex:1"></span>
-    <span id="srcline">Repertorium Publicum 2008 · GPL v3</span>
+    <span id="buildstamp" style="color:var(--dim2);font-variant-numeric:tabular-nums"></span>
+    <span id="srcline">Repertorium Publicum 2008 · data GPL v3</span>
   </div>
 </div>
 
@@ -472,7 +475,7 @@ function renderList(terms){
     const isin=inCase(r.id);
     const L=linksOf(r);
     const rem=L.slice(0,60).map(([ri,g])=>{
-      const R=REMEDIES[ri]; return '<span class="rx g'+g+'" title="'+esc(R[1])+' — grade '+g+'">'+esc(R[0])+'</span>';
+      const R=REMEDIES[ri]; return '<span class="rx g'+g+'" data-rx="'+ri+'" title="'+esc(R[1])+' — grade '+g+'">'+esc(R[0])+'</span>';
     }).join('') + (L.length>60?'<span class="rx g1">… '+(L.length-60)+' more</span>':'');
     return '<div class="rub'+(i===selIdx?' sel':'')+'" data-i="'+i+'">'
       + '<div class="top"><button class="chev" aria-label="Show remedies">▶</button>'
@@ -481,7 +484,10 @@ function renderList(terms){
       + '<div class="act"><button class="addbtn'+(isin?' in':'')+'" data-add="'+r.id+'">'+(isin?'Added':'Add')+'</button></div></div>'
       + '<div class="rem">'+rem+'</div></div>';
   }).join('');
-  const sel=wrap.querySelector('.rub.sel'); if(sel) sel.scrollIntoView({block:'nearest'});
+  const sel=wrap.querySelector('.rub.sel');
+  /* embedded, scrollIntoView also scrolls the parent page — which yanked the
+     landing page past its own hero every time the demo rendered */
+  if(sel && window.self===window.top) sel.scrollIntoView({block:'nearest'});
 }
 
 /* ---------- chapters ---------- */
@@ -548,15 +554,15 @@ function refreshRight(){
     + '<label><input type="checkbox" id="fc"'+(coverAll?' checked':'')+'> cover all '+n+'</label>'
     + '<span class="sp" style="flex:1"></span><span>'+act.length+' remedies'
     + (list.length-act.length? ' · '+excluded.size+' excluded':'')+'</span></div>';
-  h+='<table class="an"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th><th></th></tr></thead><tbody>';
+  h+='<table class="an anlist"><thead><tr><th>#</th><th>Remedy</th><th class="num">Score</th><th class="num">Cover</th><th></th><th></th></tr></thead><tbody>';
   list.slice(0,150).forEach((o,i)=>{
     const R=REMEDIES[o.ri];
     const cov = o.cover===n ? '<span style="color:var(--ok);font-weight:600">'+o.cover+'/'+n+'</span>' : o.cover+'/'+n;
     const rank=o.ex?'·':(++rankN);
     h+='<tr'+(o.ex?' class="excluded"':'')+'><td class="num">'+rank+'</td>'
-      +'<td><b>'+esc(R[0])+'</b> <span style="color:var(--dim)">'+esc(R[1])+'</span></td>'
+      +'<td data-rem="'+o.ri+'"><b>'+esc(R[0])+'</b> <span class="rxfull" style="color:var(--dim)">'+esc(R[1])+'</span></td>'
       +'<td class="num"><b>'+o.score+'</b></td><td class="num">'+cov+'</td>'
-      +'<td style="width:80px"><div class="scbar" style="width:'+Math.max(4,Math.round(78*o.score/max))+'px"></div></td>'
+      +'<td class="barcell" style="width:80px"><div class="scbar" style="width:'+Math.max(4,Math.round(78*o.score/max))+'px"></div></td>'
       +'<td><button class="xbtn" data-ex="'+o.ri+'" title="'+(o.ex?'Include again':'Exclude this remedy')+'">'+(o.ex?'↺':'⊘')+'</button></td></tr>';
   });
   h+='</tbody></table>';
@@ -577,7 +583,7 @@ function renderMatrix(){
   h+='<th class="num">Σ</th></tr></thead><tbody>';
   list.forEach(o=>{
     const R=REMEDIES[o.ri];
-    h+='<tr><td>'+esc(R[0])+'</td>';
+    h+='<tr><td data-rem="'+o.ri+'">'+esc(R[0])+'</td>';
     caseList.forEach((c,i)=>{ const g=o.g[i]||0; h+='<td class="g'+g+'c">'+(g?g:'·')+'</td>'; });
     h+='<td class="num"><b>'+o.score+'</b></td></tr>';
   });
@@ -719,8 +725,11 @@ async function boot(){
   prog(100,'Ready'); await breathe();
   $('#load').classList.add('done');
   $('#statline').innerHTML='<b>'+CHAPTERS.length+'</b> chapters · search to begin';
-  $('#q').focus();
-  if(!LS.get('seen',false)){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
+  /* never grab focus when embedded: focusing inside the frame makes the
+     parent scroll the frame into view, so the landing page jumped past
+     its own hero on load */
+  if(window.self===window.top) $('#q').focus();
+  if(!LS.get('seen',false) && !location.hash){ LS.set('seen',true); setTimeout(()=>openModal('Welcome to Repertorium Publicum Explorer', helpHTML()),420); }
 }
 
 /* ---------- events ---------- */
@@ -811,5 +820,1027 @@ document.addEventListener('keydown',e=>{
 
 boot();
 </script>
+
+<script>
+/* Offline: register the site's service worker (one scope for the whole site).
+ * It was defined but never called, so the app never actually cached itself. */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  addEventListener('load', function () {
+    navigator.serviceWorker.register('../sw.js').catch(function () {});
+  });
+}
+</script>
+
+<script>
+/* Deep links — no network, no dependency, no build step.
+ *
+ *   #q=anxiety+night      prefill the search and run it
+ *   #tab=case             open a panel (search | browse | case | analysis | matrix)
+ *   #demo=search|narrow|case|analysis   guided scenes, used by the landing page
+ *
+ * Applied after boot, and again on every hashchange, so the landing page can
+ * drive this app inside an iframe without reloading it. */
+(function () {
+  var tries = 0;
+
+  function booted() {
+    return typeof RUBRICS !== 'undefined' && RUBRICS.length > 0 &&
+      document.getElementById('load') &&
+      document.getElementById('load').classList.contains('done');
+  }
+
+  function setQ(terms) {
+    var q = document.getElementById('q');
+    q.value = terms;
+    q.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function addFirst(terms, n) {
+    setQ(terms);
+    var added = 0;
+    for (var i = 0; i < results.length && added < n; i++) {
+      if (!inCase(results[i].id)) { addRubric(results[i].id); added++; }
+    }
+    return added;
+  }
+
+  function clearCase() { caseList = []; saveCase(); refreshRight(); }
+  /* Each scene is independent: pressing "a one-remedy rubric" must not leave a
+     filter on that quietly changes what "build a case" builds. */
+  function resetFilters() {
+    narrowOnly = false; chapterFilter = null;
+    var cb = document.getElementById('narrow'); if (cb) cb.checked = false;
+    var rng = document.getElementById('narrowN'); if (rng) rng.disabled = true;
+    if (window.showFilterChip) { try { showFilterChip(); } catch (e) {} }
+  }
+
+
+  var TABS = { search: 'search', browse: 'browse', case: 'case', analysis: 'an', an: 'an', matrix: 'mx', mx: 'mx' };
+
+  function apply() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return;
+    var p = new URLSearchParams(h);
+    var demo = p.get('demo'), q = p.get('q'), tab = p.get('tab');
+
+    if (demo) resetFilters();
+
+    if (demo === 'search') {
+      setQ('anxiety night'); setTab('search');
+    } else if (demo === 'narrow') {
+      narrowOnly = true; narrowN = 6;
+      var cb = document.getElementById('narrow');
+      if (cb) { cb.checked = true; }
+      var rng = document.getElementById('narrowN');
+      if (rng) { rng.disabled = false; rng.value = 6; }
+      var out = document.getElementById('narrowV');
+      if (out) { out.textContent = '6'; }
+      setQ('weeping consolation'); setTab('search');
+    } else if (demo === 'case' || demo === 'analysis' || demo === 'matrix') {
+      clearCase();
+      addFirst('anxiety night', 1);
+      addFirst('thirstless', 1);
+      addFirst('weeping consolation', 1);
+      setRTab(demo === 'case' ? 'case' : demo === 'matrix' ? 'mx' : 'an');
+    } else if (q) {
+      setQ(q); setTab('search');
+    } else if (tab && TABS[tab]) {
+      if (TABS[tab] === 'search' || TABS[tab] === 'browse') setTab(TABS[tab]);
+      else setRTab(TABS[tab]);
+    }
+
+    /* a deep link is a deliberate arrival: do not cover it with the welcome sheet */
+    try { LS.set('seen', true); } catch (e) {}
+    if (window.closeModal) { try { closeModal(); } catch (e) {} }
+  }
+
+  function start() {
+    if (!booted()) {
+      if (++tries > 300) return;              // ~30 s, then give up quietly
+      return setTimeout(start, 100);
+    }
+    apply();
+    addEventListener('hashchange', apply);
+  }
+
+  if (document.readyState === 'loading') addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+<style>
+/* ── enhancement layer ──────────────────────────────────────────────────
+   Everything here is additive: a few classes the app does not have, and a
+   print stylesheet. No colour is hardcoded — all of it reads the app's own
+   theme variables, so light and high-contrast stay correct. */
+#chipbar{display:flex;gap:6px;align-items:center}
+.chipbtn{font:600 11.5px/1 var(--sans);padding:6px 9px;border-radius:999px;border:1px solid var(--line);
+         background:var(--panel2);color:var(--dim);cursor:pointer;white-space:nowrap}
+.chipbtn:hover{color:var(--text);border-color:var(--line2)}
+.chipbtn.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+.chipbtn.new{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+#casesel{max-width:150px;font:600 12px/1 var(--sans);padding:6px 8px;border-radius:8px;border:1px solid var(--line);
+         background:var(--panel2);color:var(--text)}
+.subrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chcard.back{grid-column:1/-1;text-align:left}
+.chsec{grid-column:1/-1;font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--dim2);
+       margin:10px 0 2px}
+#printhead{display:none}
+
+/* ── responsive ──────────────────────────────────────────────────────────
+   Three widths were wrong when measured: the analysis table pushed the
+   exclude button off the panel between 1024 and 1440, the header wrapped to
+   three rows at 320, and remedy names broke mid-word when the columns ran
+   out. Large screens had the opposite problem — 1,100 px of empty card. */
+@media(min-width:1500px){
+  #listwrap,#toolbar{max-width:940px;margin-left:auto;margin-right:auto}
+  #q{max-width:640px}
+}
+/* the score bar is decoration; it must never push a control out of reach */
+/* A fixed layout makes the columns share the panel instead of overflowing it:
+   between 1024 and 1440 the exclude button used to sit past the edge. */
+.anlist{table-layout:fixed;width:100%}
+.anlist th:nth-child(1),.anlist td:nth-child(1){width:34px}
+.anlist th:nth-child(3),.anlist td:nth-child(3){width:68px}
+.anlist th:nth-child(4),.anlist td:nth-child(4){width:56px}
+.anlist th:nth-child(5),.anlist td:nth-child(5){width:84px}
+.anlist th:nth-child(6),.anlist td:nth-child(6){width:36px}
+.anlist td{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1300px){
+  .anlist th:nth-child(5),.anlist td:nth-child(5){display:none}
+}
+/* The app hid the first and last columns below 780 px to save space — which
+   removed the only way to exclude a remedy on a phone. The rank can go; the
+   control cannot. */
+@media(max-width:780px){
+  table.anlist th:last-child,table.anlist td:last-child{display:table-cell}
+  .anlist th:last-child,.anlist td:last-child{width:40px}
+  table.anlist th:nth-child(1),table.anlist td:nth-child(1){display:none}
+}
+/* the app set word-break:break-word on the remedy cell, which broke names
+   mid-word ("Arsenicu m Album") — break on spaces, not on letters */
+table.an td:nth-child(2){word-break:normal;overflow-wrap:break-word;hyphens:none}
+
+/* when space runs out, the long remedy name goes before the abbreviation */
+@media(max-width:560px){
+  .an .rxfull{display:none}
+  .an td{overflow-wrap:normal;word-break:normal;hyphens:none}
+  header{gap:6px;padding:8px 10px}
+  .brand h1{font-size:13px}
+  .brand small{display:none}
+  .brand .mark{width:28px;height:28px;font-size:14px}
+  .hbtn{padding:7px 9px}
+  #q{padding:9px 58px 9px 32px}
+  /* the floating backup strip covers the status line on a phone; the app's
+     own Export covers the case, and a full-device backup is a desk task */
+  #__tools{display:none!important}
+}
+@media(max-width:420px){
+  header{flex-wrap:wrap}
+  #qwrap{order:3;flex-basis:100%}
+}
+@media(max-width:380px){
+  .brand h1{display:none}      /* the mark is the identity at this width */
+}
+/* touch: 13 px checkboxes and 26 px selects are not targets */
+input[type=checkbox]{width:15px;height:15px}
+@media(max-width:900px){
+  input[type=checkbox]{width:18px;height:18px}
+  select,.hbtn{min-height:34px}
+  #mtabs button{min-height:38px}
+}
+/* the numeric columns were 10.5 px — legible on a retina screen, not on a phone */
+.an .num,.anlist .num{font-size:11.5px}
+
+/* The retrofit strip is useful (a whole-device backup) but it was hardcoded dark
+   and sat on the status line on a phone. Theme it from the app's own variables
+   and lift it clear of the footer. */
+#__tools button{background:var(--panel2)!important;color:var(--dim)!important;
+  border:1px solid var(--line)!important;border-radius:8px!important}
+#__tools button:hover{color:var(--text)!important;border-color:var(--line2)!important}
+@media(max-width:900px){
+  #__tools{bottom:72px!important;left:8px!important;gap:5px!important}
+  #__tools button{padding:5px 8px!important;font-size:11px!important}
+}
+
+@media print{
+  @page{margin:16mm 14mm}
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important;color:#000!important}
+  #shell{display:block!important;height:auto!important}
+  header,.foot,#left,#mtabs,.tabs,#chipbar,#toast,#__tools,.backdrop,.empty button,
+  #toolbar,#chapters,.hbtn,.chipbtn{display:none!important}
+  #right{display:block!important;width:auto!important;max-width:none!important;border:0!important;
+         position:static!important;overflow:visible!important}
+  #rbody{overflow:visible!important;height:auto!important;padding:0!important}
+  #printhead{display:block!important;border-bottom:2px solid #000;margin-bottom:10px;padding-bottom:8px}
+  #printhead h1{font:700 16pt/1.2 Georgia,serif;margin:0 0 2px}
+  #printhead .m{font:400 9pt/1.4 system-ui,sans-serif;color:#333}
+  table.an{width:100%;border-collapse:collapse;font-size:9.5pt}
+  table.an th,table.an td{border-bottom:1px solid #bbb;padding:3px 5px;text-align:left}
+  table.an .num{text-align:right}
+  .scbar{background:#000!important}
+  .caseitem{border-bottom:1px solid #ccc;padding:4px 0}
+  .note{display:none!important}
+  a[href]:after{content:""}
+}
+</style>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   Enhancement layer — build 1.2.0 · 2026-11-01
+   ═══════════════════════════════════════════════════════════════════════
+   Offline, no dependency, no build step. It is appended after the app so it
+   can extend what the app already defines — the alternative is editing the
+   body of a 2 MB single file, which is how a shipped build drifts from its
+   source.
+
+   What it adds, in the order the app runs:
+     1  the app follows the system theme on its first paint
+     2  a build stamp in the app's own footer
+     3  search that narrows incrementally instead of rescanning 74,480 rubrics
+     4  "did you mean" when a spelling finds nothing
+     5  remedy → rubrics (the reverse of the repertory)
+     6  the case selector: more than one case, named
+     7  explain the ranking — what a remedy covers, and what it misses
+     8  undo / redo inside the app
+     9  chapter → sub-branch drill-down
+    10  progressive results instead of 400 cards at once
+    11  a listbox the keyboard and a screen reader can both use
+    12  a print sheet that is the case, not the interface
+    13  offline indicator, update prompt, install prompt
+    14  deep links for a single rubric and a single remedy
+   ═══════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var BUILD = '1.3.0 · 2026-11-01';
+
+  /* ── 1 · the system decides the first paint ───────────────────────── */
+  themeName = function () {
+    var t = LS.get('theme', null);
+    if (t === 'light' || t === 'dark' || t === 'hc') return t;
+    try { return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+    catch (e) { return 'dark'; }
+  };
+
+  /* ── 2 · build stamp in the app's own footer ──────────────────────── */
+  function stamp() {
+    var el = document.getElementById('buildstamp');
+    if (!el) {
+      var f = document.querySelector('.foot');
+      if (!f) return;
+      el = document.createElement('span');
+      el.id = 'buildstamp';
+      el.style.cssText = 'color:var(--dim2);font-variant-numeric:tabular-nums';
+      f.insertBefore(el, f.querySelector('#srcline'));
+    }
+    el.textContent = 'build ' + BUILD;
+  }
+
+  /* ── 3 · search: narrow incrementally, then show a window ─────────── */
+  var LIMIT = 60, lastQ = '', lastOut = null, lastFilter = '';
+
+  function filterSig() {
+    return [chapterFilter, narrowOnly ? narrowN : '-', sortBy].join('|');
+  }
+
+  runSearch = function () {
+    showFilterChip();
+    var q = $('#q').value.trim().toLowerCase();
+    var sig = filterSig();
+
+    if (!q) { results = []; lastQ = ''; lastOut = null; renderList(); updateStat(0, 0); decorate(); return; }
+
+    var terms = q.split(/\s+/).filter(Boolean);
+    /* Typing only ever narrows. Reuse the previous result set when the query
+       grew and the filters did not change, instead of rescanning all 74,480. */
+    var base = (lastOut && lastQ && sig === lastFilter && q.indexOf(lastQ) === 0) ? lastOut : RUBRICS;
+
+    var out = [];
+    for (var i = 0; i < base.length; i++) {
+      var r = base[i];
+      if (chapterFilter && r.path[0] !== chapterFilter) continue;
+      if (narrowOnly && r.count > narrowN) continue;
+      var s = r.low, ok = true;
+      for (var t = 0; t < terms.length; t++) { if (s.indexOf(terms[t]) < 0) { ok = false; break; } }
+      if (ok) out.push(r);
+    }
+    sortResults(out);
+    lastQ = q; lastOut = out; lastFilter = sig;
+
+    results = out.slice(0, LIMIT);
+    selIdx = results.length ? 0 : -1;
+    renderList(terms);
+    updateStat(out.length, results.length);
+    more(out.length, results.length);
+    suggest(q, out.length);
+    decorate();
+  };
+
+  function more(total, shown) {
+    if (total <= shown) return;
+    var w = $('#listwrap'); if (!w) return;
+    var d = document.createElement('div');
+    d.className = 'empty'; d.style.padding = '14px';
+    d.innerHTML = '<button class="hbtn" id="morebtn">Show ' + Math.min(60, total - shown) + ' more</button>'
+      + '<div style="margin-top:8px;color:var(--dim2);font-size:12px">Showing ' + shown + ' of ' + total
+      + ' — add words to narrow, or export for the full list.</div>';
+    w.appendChild(d);
+    var b = d.querySelector('#morebtn');
+    if (b) b.onclick = function () { LIMIT += 60; runSearch(); };
+  }
+
+  /* ── 4 · "did you mean" ───────────────────────────────────────────── */
+  var WORDS = null;
+  function wordList() {
+    if (WORDS) return WORDS;
+    var seen = Object.create(null), out = [];
+    for (var i = 0; i < RUBRICS.length; i++) {
+      var parts = RUBRICS[i].low.split(/[^a-z]+/);
+      for (var j = 0; j < parts.length; j++) {
+        var w = parts[j];
+        if (w.length >= 4 && !seen[w]) { seen[w] = 1; out.push(w); }
+      }
+    }
+    WORDS = out; return out;
+  }
+  function nearOne(a, b) {                       // edit distance ≤ 1
+    if (a === b) return true;
+    var la = a.length, lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    var i = 0, j = 0, diff = 0;
+    while (i < la && j < lb) {
+      if (a.charAt(i) === b.charAt(j)) { i++; j++; continue; }
+      if (++diff > 1) return false;
+      if (la > lb) i++; else if (lb > la) j++; else { i++; j++; }
+    }
+    if (i < la || j < lb) diff++;
+    return diff <= 1;
+  }
+  function suggest(q, total) {
+    if (total > 0 || q.length < 4 || q.indexOf(' ') >= 0) return;
+    var words = wordList(), best = [];
+    for (var i = 0; i < words.length && best.length < 4; i++) {
+      if (Math.abs(words[i].length - q.length) <= 1 && nearOne(q, words[i])) best.push(words[i]);
+    }
+    if (!best.length) return;
+    var w = $('#listwrap'); if (!w) return;
+    var d = document.createElement('div');
+    d.className = 'empty'; d.style.padding = '12px';
+    d.innerHTML = 'No rubric contains <b>' + esc(q) + '</b>. Did you mean '
+      + best.map(function (x) { return '<button class="hbtn" data-sugg="' + x + '">' + x + '</button>'; }).join(' ')
+      + '?';
+    w.appendChild(d);
+  }
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-sugg]');
+    if (!s) return;
+    $('#q').value = s.dataset.sugg;
+    $('#qclear').style.display = 'block';
+    runSearch();
+  });
+
+  /* ── 5 · remedy → rubrics, and 7 · what a remedy covers ───────────── */
+  var RXCACHE = new Map();
+
+  function rubricsOfRemedy(ri) {
+    if (RXCACHE.has(ri)) return RXCACHE.get(ri);
+    var out = [];
+    for (var i = 0; i < RUBRICS.length; i++) {
+      var r = RUBRICS[i], L = linksRaw(r);
+      for (var k = 0; k < L.length; k++) {
+        if (L[k][0] === ri) { out.push([r.id, L[k][1]]); break; }
+      }
+    }
+    RXCACHE.set(ri, out); return out;
+  }
+
+  function remedyModal(ri) {
+    var R = REMEDIES[ri], rows = rubricsOfRemedy(ri);
+    var g = { 1: 0, 2: 0, 3: 0 };
+    rows.forEach(function (x) { g[x[1]]++; });
+    var ch = {};
+    rows.forEach(function (x) { var c = BYID.get(x[0]).path[0]; ch[c] = (ch[c] || 0) + 1; });
+    var chapters = Object.keys(ch).sort().map(function (c) {
+      return '<span class="chip ghost">' + esc(c) + ' ' + ch[c] + '</span>';
+    }).join(' ');
+
+    var narrow = rows.slice().sort(function (a, b) {
+      return BYID.get(a[0]).count - BYID.get(b[0]).count;
+    }).slice(0, 40);
+
+    var body = '<p style="color:var(--dim)">' + esc(R[1]) + ' appears in <b>' + rows.length + '</b> rubrics — '
+      + '<b>' + g[3] + '</b> at grade 3, <b>' + g[2] + '</b> at grade 2, <b>' + g[1] + '</b> at grade 1.</p>'
+      + '<div style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 14px">' + chapters + '</div>'
+      + '<p style="color:var(--dim);font-size:12.5px;margin-bottom:8px">Narrowest first — these are the rubrics '
+      + 'that discriminate, not the ones that list half the materia medica.</p>'
+      + '<table class="an"><tbody>' + narrow.map(function (x) {
+        var r = BYID.get(x[0]);
+        return '<tr><td class="num g' + x[1] + 'c" style="width:26px">' + x[1] + '</td>'
+          + '<td>' + esc(r.path.join(' › ')) + '</td>'
+          + '<td class="num" style="white-space:nowrap">' + r.count + '</td></tr>';
+      }).join('') + '</tbody></table>'
+      + (rows.length > 40 ? '<div class="empty" style="padding:10px">Showing the 40 narrowest of ' + rows.length + '.</div>' : '');
+
+    openModal(R[0] + ' — ' + R[1], body);
+  }
+
+  /* what this remedy does with *this* case */
+  function coverageModal(ri) {
+    var list = analyse(), o = null;
+    for (var i = 0; i < list.length; i++) if (list[i].ri === ri) o = list[i];
+    if (!o) { remedyModal(ri); return; }
+    var R = REMEDIES[ri], n = caseList.length;
+    var rank = 0;
+    for (var j = 0; j < list.length; j++) { if (!list[j].ex) rank++; if (list[j] === o) break; }
+
+    var rows = caseList.map(function (c, ci) {
+      var gg = o.g[ci] || 0;
+      return '<tr' + (gg ? '' : ' style="opacity:.55"') + '><td class="num" style="width:26px">'
+        + (gg ? '<b class="g' + gg + 'c">' + gg + '</b>' : '·') + '</td>'
+        + '<td>' + esc(c.path.join(' › ')) + '</td>'
+        + '<td class="num" style="white-space:nowrap">' + (gg ? 'covers' : 'misses') + '</td></tr>';
+    }).join('');
+
+    openModal(R[0] + ' — why it ranks here',
+      '<p style="color:var(--dim)">Score <b>' + o.score + '</b> · covers <b>' + o.cover + ' of ' + n
+      + '</b> rubrics · position <b>' + (o.ex ? 'excluded' : rank) + '</b>.</p>'
+      + '<table class="an"><thead><tr><th></th><th>Rubric</th><th class="num">This case</th></tr></thead><tbody>'
+      + rows + '</tbody></table>'
+      + '<p style="color:var(--dim);font-size:12.5px;margin-top:12px">The score is the sum of the grades this '
+      + 'remedy holds in your rubrics. A remedy that misses a rubric is not wrong — it is unproven by that rubric, '
+      + 'which is the thing to take back to the materia medica.</p>'
+      + '<div style="margin-top:10px"><button class="hbtn" data-rx-more="' + ri + '">Every rubric for ' + esc(R[0]) + '</button></div>');
+  }
+
+  document.addEventListener('click', function (e) {
+    var m = e.target.closest('[data-rx-more]');
+    if (m) { remedyModal(+m.dataset.rxMore); return; }
+    var x = e.target.closest('[data-rx]');
+    if (x && !e.target.closest('[data-add]')) { remedyModal(+x.dataset.rx); return; }
+    var rem = e.target.closest('[data-rem]');
+    if (rem) { coverageModal(+rem.dataset.rem); }
+  });
+
+  /* ── 6 · more than one case ───────────────────────────────────────── */
+  var CASES = null;
+
+  function loadCases() {
+    var st = LS.get('cases', null);
+    if (!st || !st.list || !st.list.length) {
+      var legacy = LS.get('case', []);
+      st = { active: 'c1', list: [{ id: 'c1', name: 'Case 1', updated: Date.now(),
+                                    rubrics: Array.isArray(legacy) ? legacy : [] }] };
+      LS.set('cases', st);
+    }
+    CASES = st;
+    if (!CASES.list.some(function (c) { return c.id === CASES.active; })) CASES.active = CASES.list[0].id;
+  }
+  function activeCase() {
+    var id = CASES.active;
+    for (var i = 0; i < CASES.list.length; i++) if (CASES.list[i].id === id) return CASES.list[i];
+    return CASES.list[0];
+  }
+
+  saveCase = function () {
+    /* boot() saves the case before this layer has loaded the case store, so the
+       legacy single-case path has to keep working on its own. */
+    if (!CASES) {
+      LS.set('case', caseList);
+      var mc0 = $('#mc'); if (mc0) mc0.textContent = caseList.length;
+      return;
+    }
+    var c = activeCase();
+    if (c) { c.rubrics = caseList.slice(); c.updated = Date.now(); }
+    LS.set('cases', CASES);
+    LS.set('case', caseList);                 // the pre-1.2 key stays in step
+    var mc = $('#mc'); if (mc) mc.textContent = caseList.length;
+  };
+
+  function renderCaseSel() {
+    var sel = $('#casesel'); if (!sel || !CASES) return;
+    sel.innerHTML = CASES.list.map(function (c) {
+      return '<option value="' + esc(c.id) + '"' + (c.id === CASES.active ? ' selected' : '') + '>'
+        + esc(c.name) + (c.rubrics && c.rubrics.length ? ' (' + c.rubrics.length + ')' : '') + '</option>';
+    }).join('');
+  }
+
+  function switchCase(id) {
+    CASES.active = id;
+    var c = activeCase();
+    caseList = (c.rubrics || []).slice();
+    excluded.clear();
+    LIMIT = 60;
+    LS.set('case', caseList);
+    LS.set('cases', CASES);
+    renderCaseSel(); refreshRight(); markAddButtons();
+    toast('Case: ' + c.name);
+  }
+
+  function newCase() {
+    var n = CASES.list.length + 1;
+    while (CASES.list.some(function (c) { return c.name === 'Case ' + n; })) n++;
+    CASES.list.push({ id: 'c' + Date.now().toString(36), name: 'Case ' + n, updated: Date.now(), rubrics: [] });
+    switchCase(CASES.list[CASES.list.length - 1].id);
+  }
+
+  function renameCase() {
+    var c = activeCase();
+    openModal('Rename this case',
+      '<p style="color:var(--dim)">The name is stored on this device only.</p>'
+      + '<input id="casename" value="' + esc(c.name) + '" style="width:100%;padding:10px;border-radius:8px;'
+      + 'border:1px solid var(--line);background:var(--bg2);color:var(--text);font:inherit">',
+      '<button class="hbtn" data-close>Cancel</button><button class="hbtn" id="casedone">Save</button>');
+    var inp = $('#casename'); if (inp) { inp.focus(); inp.select(); }
+    $('#casedone').onclick = function () {
+      var v = ($('#casename').value || '').trim();
+      if (v) { c.name = v.slice(0, 60); LS.set('cases', CASES); renderCaseSel(); toast('Renamed'); }
+      closeModal();
+    };
+  }
+
+  function deleteCase() {
+    if (CASES.list.length < 2) { toast('Keep at least one case'); return; }
+    var c = activeCase();
+    openModal('Delete “' + esc(c.name) + '”?',
+      '<p style="color:var(--dim)">' + (c.rubrics.length || 0) + ' rubric(s) and their notes go with it. '
+      + 'There is no undo for this one.</p>',
+      '<button class="hbtn" data-close>Keep it</button><button class="hbtn" id="casedel">Delete</button>');
+    $('#casedel').onclick = function () {
+      CASES.list = CASES.list.filter(function (x) { return x.id !== c.id; });
+      CASES.active = CASES.list[0].id;
+      switchCase(CASES.active); closeModal(); toast('Deleted');
+    };
+  }
+
+  function caseBar() {
+    var head = document.querySelector('#right .rhead');
+    if (!head || document.getElementById('casesel')) return;
+    var sel = document.createElement('select');
+    sel.id = 'casesel'; sel.title = 'Switch case'; sel.setAttribute('aria-label', 'Switch case');
+    var plus = document.createElement('button');
+    plus.className = 'hbtn'; plus.id = 'btnnewcase'; plus.textContent = '+'; plus.title = 'New case';
+    var pen = document.createElement('button');
+    pen.className = 'hbtn'; pen.id = 'btnrenamecase'; pen.textContent = '✎'; pen.title = 'Rename this case';
+    var del = document.createElement('button');
+    del.className = 'hbtn'; del.id = 'btndelcase'; del.textContent = '🗑'; del.title = 'Delete this case';
+
+    var h2 = head.querySelector('h2');
+    head.insertBefore(sel, h2.nextSibling);
+    head.insertBefore(plus, sel.nextSibling);
+    head.insertBefore(pen, plus.nextSibling);
+    head.insertBefore(del, pen.nextSibling);
+
+    sel.onchange = function () { switchCase(sel.value); };
+    plus.onclick = newCase;
+    pen.onclick = renameCase;
+    del.onclick = deleteCase;
+    renderCaseSel();
+  }
+
+  /* ── 8 · undo / redo inside the app ───────────────────────────────── */
+  var undoStack = [], redoStack = [], snapTimer = null;
+
+  function snap() {
+    undoStack.push(JSON.stringify(caseList));
+    if (undoStack.length > 50) undoStack.shift();
+    redoStack.length = 0;
+  }
+  function applySnap(json) {
+    caseList = JSON.parse(json);
+    saveCase(); refreshRight(); markAddButtons();
+  }
+  function undo() {
+    if (!undoStack.length) { toast('Nothing to undo'); return; }
+    redoStack.push(JSON.stringify(caseList));
+    applySnap(undoStack.pop());
+    toast('Undone');
+  }
+  function redo() {
+    if (!redoStack.length) { toast('Nothing to redo'); return; }
+    undoStack.push(JSON.stringify(caseList));
+    applySnap(redoStack.pop());
+    toast('Redone');
+  }
+
+  var _add = addRubric, _remove = removeRubric;
+  addRubric = function (id) { snap(); _add(id); };
+  removeRubric = function (id) { snap(); _remove(id); };
+
+  document.addEventListener('keydown', function (e) {
+    if (!(e.ctrlKey || e.metaKey) || String(e.key).toLowerCase() !== 'z') return;
+    if (/input|textarea|select/i.test(document.activeElement.tagName)) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.shiftKey) redo(); else undo();
+  }, true);                                  // capture: the retrofit strip also binds Ctrl+Z
+
+  /* ── 9 · chapter → sub-branch drill-down ──────────────────────────── */
+  var browse = null;
+
+  renderChapters = function () {
+    var counts = {};
+    for (var i = 0; i < RUBRICS.length; i++) {
+      var c0 = RUBRICS[i].path[0];
+      counts[c0] = (counts[c0] || 0) + 1;
+    }
+    CHAPTERS = Object.keys(counts).sort();
+    var el = $('#chapters'); if (!el) return;
+
+    if (!browse) {
+      el.innerHTML = CHAPTERS.map(function (c) {
+        return '<button class="chcard" data-chb="' + esc(c) + '"><b>' + esc(c) + '</b><span>'
+          + counts[c].toLocaleString() + ' rubrics</span></button>';
+      }).join('');
+      return;
+    }
+
+    var groups = {};
+    for (var j = 0; j < RUBRICS.length; j++) {
+      var r = RUBRICS[j];
+      if (r.path[0] !== browse) continue;
+      var key = r.path.length > 1 ? r.path[1] : '— direct rubrics';
+      groups[key] = (groups[key] || 0) + 1;
+    }
+    var keys = Object.keys(groups).sort();
+    el.innerHTML = '<button class="chcard back" data-chback="1"><b>← ' + esc(browse) + '</b><span>'
+      + counts[browse].toLocaleString() + ' rubrics · ' + keys.length + ' branches</span></button>'
+      + keys.map(function (k) {
+        return '<button class="chcard" data-chsub="' + esc(k) + '"><b>' + esc(k) + '</b><span>'
+          + groups[k].toLocaleString() + ' rubrics</span></button>';
+      }).join('');
+  };
+
+  document.addEventListener('click', function (e) {
+    var ch = e.target.closest('[data-chb]');
+    if (ch) { browse = ch.dataset.chb; renderChapters(); return; }
+    if (e.target.closest('[data-chback]')) { browse = null; renderChapters(); return; }
+    var sub = e.target.closest('[data-chsub]');
+    if (sub) {
+      var k = sub.dataset.chsub;
+      chapterFilter = browse;
+      $('#q').value = (k === '— direct rubrics' ? browse : k).toLowerCase();
+      setTab('search'); runSearch();
+      toast('Branch: ' + k);
+    }
+  });
+
+  /* ── 11 · a listbox the keyboard and a screen reader can use ──────── */
+  function decorate() {
+    var w = $('#listwrap'); if (!w) return;
+    w.setAttribute('role', 'listbox');
+    w.setAttribute('aria-label', 'Rubric results');
+    var q = $('#q');
+    q.setAttribute('role', 'combobox');
+    q.setAttribute('aria-expanded', results.length ? 'true' : 'false');
+    q.setAttribute('aria-controls', 'listwrap');
+    q.setAttribute('aria-autocomplete', 'list');
+
+    var cards = w.querySelectorAll('.rub');
+    for (var i = 0; i < cards.length; i++) {
+      var el = cards[i], r = results[i];
+      if (!r) continue;
+      el.id = 'rub-' + r.id;
+      el.setAttribute('role', 'option');
+      el.setAttribute('aria-selected', String(i === selIdx));
+    }
+    if (results[selIdx]) q.setAttribute('aria-activedescendant', 'rub-' + results[selIdx].id);
+    else q.removeAttribute('aria-activedescendant');
+
+    var chips = w.querySelectorAll('.rx[title]');
+    for (var k = 0; k < chips.length; k++) {
+      var c = chips[k];
+      if (!c.getAttribute('aria-label')) c.setAttribute('aria-label', c.title);
+    }
+  }
+
+  /* ── 12 · the print sheet is the case, not the interface ──────────── */
+  function printHead() {
+    var el = document.getElementById('printhead');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'printhead';
+      document.body.appendChild(el);
+    }
+    var c = activeCase ? activeCase() : null;
+    el.innerHTML = '<h1>' + (c ? esc(c.name) : 'Case') + '</h1>'
+      + '<div class="m">Repertorium Publicum (2008), an open Kent-derived repertory · '
+      + new Date().toLocaleDateString() + ' · ' + caseList.length + ' rubrics · '
+      + 'analysed by the sum of the printed grades</div>';
+  }
+  addEventListener('beforeprint', printHead);
+
+  /* ── 13 · offline, update, install ────────────────────────────────── */
+  function chipbar() {
+    var head = document.querySelector('header');
+    if (!head || document.getElementById('chipbar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'chipbar';
+    var theme = $('#btntheme');
+    head.insertBefore(bar, theme || null);
+  }
+  function chip(id, text, cls, onclick) {
+    var bar = document.getElementById('chipbar'); if (!bar) return null;
+    var b = document.getElementById(id);
+    if (!b) {
+      b = document.createElement('button');
+      b.id = id; b.className = 'chipbtn' + (cls ? ' ' + cls : '');
+      b.type = 'button';
+      bar.appendChild(b);
+    }
+    b.textContent = text;
+    if (onclick) b.onclick = onclick;
+    return b;
+  }
+
+  var installEvt = null;
+  addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); installEvt = e;
+    chip('installchip', 'Install', 'new', function () {
+      if (!installEvt) return;
+      installEvt.prompt();
+      installEvt = null;
+      var b = document.getElementById('installchip'); if (b) b.remove();
+    });
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then(function (reg) {
+      if (!reg) return;
+      chip('offlinechip', 'Offline ready', 'ok', null);
+      reg.update().catch(function () {});            // ask once per load
+      reg.addEventListener('updatefound', function () {
+        var w = reg.installing;
+        if (!w) return;
+        w.addEventListener('statechange', function () {
+          if (w.state === 'installed' && navigator.serviceWorker.controller) {
+            chip('updatechip', 'New version — reload', 'new', function () { location.reload(); });
+          }
+        });
+      });
+    }).catch(function () {});
+  }
+
+  /* ── 14 · deep links for a rubric and a remedy ────────────────────── */
+  function norm(s) { return String(s).toLowerCase().replace(/[^a-z]/g, ''); }
+
+  function rubricModal(id) {
+    var r = BYID.get(id); if (!r) return;
+    var L = linksOf(r).slice().sort(function (a, b) { return b[1] - a[1] || a[0] - b[0]; });
+    openModal(r.path[r.path.length - 1],
+      '<p style="color:var(--dim)">' + esc(r.path.join(' › ')) + '</p>'
+      + '<p style="color:var(--dim)">Chapter <b>' + esc(r.path[0]) + '</b> · <b>' + r.count
+      + '</b> remedies · grades 3/2/1 below</p>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:12px">'
+      + L.map(function (x) {
+          return '<span class="rx g' + x[1] + '" data-rx="' + x[0] + '" title="'
+            + esc(REMEDIES[x[0]][1]) + ' — grade ' + x[1] + '">' + esc(REMEDIES[x[0]][0]) + '</span>';
+        }).join('')
+      + '</div>'
+      + '<div style="margin-top:16px"><button class="hbtn" id="addfrommodal">Add this rubric to the case</button></div>');
+    var b = $('#addfrommodal');
+    if (b) b.onclick = function () { addRubric(r.id); closeModal(); };
+  }
+
+  function deepLink() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return;
+    var p = new URLSearchParams(h);
+    var rid = p.get('rubric'), rx = p.get('remedy');
+    if (rid) {
+      var r = BYID.get(+rid);
+      if (!r) return;
+      /* search the whole path: the rubric matches itself, and narrow-first
+         ordering puts it near the top */
+      $('#q').value = r.path.join(' ').toLowerCase();
+      setTab('search'); runSearch();
+      var el = document.getElementById('rub-' + r.id);
+      if (!el && LIMIT < 240) { LIMIT = 240; runSearch(); el = document.getElementById('rub-' + r.id); }
+      if (el) { el.classList.add('open'); if (window.self === window.top) el.scrollIntoView({ block: 'center' }); }
+      rubricModal(r.id);
+    } else if (rx) {
+      var want = norm(rx), ri = -1, i;
+      for (i = 0; i < REMEDIES.length; i++) {
+        if (norm(REMEDIES[i][0]) === want || norm(REMEDIES[i][1]) === want) { ri = i; break; }
+      }
+      if (ri < 0) {                                  // "ars" -> "Ars." / "Arsenicum album"
+        for (i = 0; i < REMEDIES.length; i++) {
+          if (norm(REMEDIES[i][0]).indexOf(want) === 0 || norm(REMEDIES[i][1]).indexOf(want) === 0) { ri = i; break; }
+        }
+      }
+      if (ri >= 0) remedyModal(ri);
+    }
+  }
+  addEventListener('hashchange', deepLink);
+
+  /* ── 18 · the columnar dataset (v2) ───────────────────────────────────
+     Same information, stored as parallel arrays with one concatenated link
+     blob instead of 98,000 objects each repeating its key names. It gzips 20%
+     smaller and parses faster. v1 still loads, so a build from the template
+     with the original kent.json keeps working. */
+  var _flatten1 = flatten, V2 = null;
+
+  flatten = function (tree) {
+    if (!tree || typeof tree.rx !== 'string') return _flatten1(tree);
+
+    V2 = { rx: tree.rx, gr: tree.gr };
+    var names = tree.names, n = tree.n, c = tree.c, k = tree.k;
+    var N = n.length, parent = new Int32Array(N), paths = new Array(N), i, t;
+
+    for (i = 0; i < N; i++) parent[i] = -1;
+    for (i = 0; i < N; i++) {
+      var kids = c[i] || [];
+      for (t = 0; t < kids.length; t++) parent[kids[t]] = i;
+    }
+    for (i = 0; i < N; i++) {                       // children follow parents
+      var nm = names[n[i]];
+      var up = parent[i] >= 0 ? paths[parent[i]] : [];
+      paths[i] = nm ? up.concat(nm) : up;
+    }
+
+    var out = [], off = 0;
+    for (i = 0; i < N; i++) {
+      var cnt = k[i] || 0;
+      if (!cnt) continue;
+      out.push({ id: out.length, path: paths[i], count: cnt,
+                 low: paths[i].join(' ').toLowerCase(), _o: off, _k: cnt });
+      off += cnt;
+    }
+    return out;
+  };
+
+  var _linksOf = linksOf;
+  linksOf = function (r) {
+    if (r._l) return r._l;
+    if (r._o !== undefined && V2) {
+      var o = [], base = r._o * 2;
+      for (var j = 0; j < r._k; j++) {
+        o.push([parseInt(V2.rx.substr(base + j * 2, 2), 36), +V2.gr.charAt(r._o + j)]);
+      }
+      r._l = o; return o;
+    }
+    return _linksOf(r);
+  };
+
+  /* decode one rubric's links without caching them — the remedy view walks all
+     74,480 and caching every pair would cost tens of megabytes */
+  function linksRaw(r) {
+    var out = [], j;
+    if (r._o !== undefined && V2) {
+      for (j = 0; j < r._k; j++) {
+        out.push([parseInt(V2.rx.substr((r._o + j) * 2, 2), 36), +V2.gr.charAt(r._o + j)]);
+      }
+    } else {
+      var s = r.r || '';
+      for (j = 0; j < s.length; j += 3) {
+        var v = parseInt(s.substr(j, 3), 36);
+        out.push([v >> 2, v & 3]);
+      }
+    }
+    return out;
+  }
+
+  /* ── 9 · scoring methods, with the arithmetic on the screen ─────────────
+     Three presets, each named by what it computes rather than by a school, so
+     nothing here claims to encode a convention it cannot verify. The formula is
+     printed next to the control, and the analysis header says which one is live. */
+  var METHODS = {
+    kent:   { w: { 1: 1, 2: 2, 3: 3 }, label: '3·2·1', note: 'the printed grade, summed' },
+    equal:  { w: { 1: 1, 2: 1, 3: 1 }, label: '1·1·1', note: 'every rubric counts once' },
+    steep:  { w: { 1: 1, 2: 4, 3: 9 }, label: '9·4·1', note: 'the grade, squared' }
+  };
+  var method = LS.get('method', 'kent');
+  if (!METHODS[method]) method = 'kent';
+  var eliminate = !!LS.get('eliminate', false);
+
+  var _analyse = analyse;
+  analyse = function () {
+    var W = METHODS[method].w;
+    var rows = new Map();
+    caseList.forEach(function (c, ci) {
+      var links = c.links || [];
+      for (var i = 0; i < links.length; i++) {
+        var ri = links[i][0], g = links[i][1];
+        if (g < minGrade) continue;
+        var o = rows.get(ri);
+        if (!o) { o = { ri: ri, score: 0, cover: 0, g: {}, ex: excluded.has(ri) }; rows.set(ri, o); }
+        o.score += W[g];
+        o.cover++;
+        o.g[ci] = Math.max(o.g[ci] || 0, g);
+      }
+    });
+    var list = [];
+    rows.forEach(function (o) { list.push(o); });
+
+    if (coverAll) list = list.filter(function (o) { return o.cover === caseList.length; });
+    if (eliminate) {
+      /* eliminative: survive only if every rubric of the case is held at grade 2
+         or better — a grade-1 bystander is not evidence */
+      list = list.filter(function (o) {
+        for (var i = 0; i < caseList.length; i++) if ((o.g[i] || 0) < 2) return false;
+        return true;
+      });
+    }
+    list.sort(function (a, b) {
+      return (a.ex ? 1 : 0) - (b.ex ? 1 : 0) || b.score - a.score || b.cover - a.cover || a.ri - b.ri;
+    });
+    return list;
+  };
+
+  function scoringBar() {
+    if (rtab !== 'an') return;
+    var tb = document.querySelector('#rbody .toolbar');
+    if (!tb || document.getElementById('fmethod')) return;
+
+    var lab = document.createElement('label');
+    lab.innerHTML = 'scoring <select id="fmethod">'
+      + Object.keys(METHODS).map(function (k) {
+          return '<option value="' + k + '"' + (k === method ? ' selected' : '') + '>'
+            + METHODS[k].label + '</option>';
+        }).join('') + '</select>';
+    var elim = document.createElement('label');
+    elim.innerHTML = '<input type="checkbox" id="felim"' + (eliminate ? ' checked' : '')
+      + '> eliminative';
+    elim.title = 'Keep only remedies that hold grade 2 or better in every rubric of the case';
+
+    tb.insertBefore(elim, tb.firstChild);
+    tb.insertBefore(lab, tb.firstChild);
+
+    var note = document.createElement('div');
+    note.style.cssText = 'padding:0 0 10px;color:var(--dim2);font-size:12px';
+    note.textContent = 'Scoring: ' + METHODS[method].note
+      + (eliminate ? ' · eliminative: grade 2+ in every rubric' : '');
+    tb.parentNode.insertBefore(note, tb.nextSibling);
+
+    lab.querySelector('#fmethod').onchange = function (e) {
+      method = e.target.value; LS.set('method', method); refreshRight();
+    };
+    elim.querySelector('#felim').onchange = function (e) {
+      eliminate = e.target.checked; LS.set('eliminate', eliminate); refreshRight();
+    };
+
+    /* the column says what it is; the note above says which arithmetic produced
+       it — "Score 3·2·1" did not fit the column at any width */
+    var th = document.querySelector('#rbody .an thead th.num');
+    if (th) th.textContent = 'Score';
+  }
+
+  /* ── wire it up once the app has booted ───────────────────────────── */
+  var tries = 0;
+  (function start() {
+    var ready = typeof RUBRICS !== 'undefined' && RUBRICS.length > 0 &&
+      document.getElementById('load') && document.getElementById('load').classList.contains('done');
+    if (!ready) {
+      if (++tries > 300) return;
+      return setTimeout(start, 100);
+    }
+    loadCases();          // before anything that reads the case store
+    applyPrefs();         // boot() chose a theme before this layer could override themeName()
+    stamp();
+    chipbar();
+    caseBar();
+
+    /* Clear must be undoable too, so it gets the same snapshot as the rest */
+    var clear = $('#btnclear');
+    if (clear) clear.onclick = function () {
+      if (!caseList.length) return;
+      snap(); caseList = []; excluded.clear();
+      saveCase(); refreshRight(); markAddButtons(); toast('Case cleared');
+    };
+    /* A note edit is a case change: snapshot when the field is entered */
+    var noteOpen = false;
+    document.addEventListener('focusin', function (e) {
+      if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-note')) {
+        if (!noteOpen) { snap(); noteOpen = true; }
+      } else noteOpen = false;
+    });
+
+    /* boot loaded the legacy single case; put the active case back in its place */
+    var c = activeCase();
+    if (c && Array.isArray(c.rubrics) && JSON.stringify(c.rubrics) !== JSON.stringify(caseList)) {
+      caseList = c.rubrics.slice();
+      LS.set('case', caseList);
+      refreshRight(); markAddButtons();
+    }
+    renderCaseSel();
+    decorate();
+    setTimeout(deepLink, 60);
+  })();
+
+  var _exportText = exportText;
+  exportText = function (fmt) {
+    var t = _exportText(fmt);
+    if (fmt === 'text') {
+      t = t.replace('Remedies by weighted score (grade 3+2+1):',
+                    'Remedies by weighted score (' + METHODS[method].label
+                    + (eliminate ? ', eliminative: grade 2+ in every rubric' : '') + '):');
+    }
+    return t;
+  };
+
+  /* the case selector must survive a redraw of the header */
+  var _refresh = refreshRight;
+  refreshRight = function () { _refresh(); if (CASES) renderCaseSel(); scoringBar(); };
+})();
+</script>
+
+
 </body>
 </html>
