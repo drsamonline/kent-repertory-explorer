@@ -232,6 +232,32 @@ t('#rubric= also highlights it in the list', dl.listed);
 // 13 chip bar exists
 t('header chip bar', await page.evaluate(() => !!document.getElementById('chipbar')));
 
+// ── layout across widths: the faults this pass fixed ──────────────────────
+// Measured, not eyeballed: no horizontal scroll at any width, and the exclude
+// control stays reachable on a phone (the app used to hide that whole column).
+const layout = [];
+for (const w of [320, 430, 768, 1024, 1440, 1920]) {
+  const page2 = await browser.newPage();
+  await page2.setViewport({ width: w, height: 860 });
+  await page2.goto(URL + '#demo=analysis', { waitUntil: 'load', timeout: 60000 });
+  await page2.waitForFunction("document.getElementById('load').classList.contains('done')", { timeout: 45000, polling: 100 });
+  await new Promise(r => setTimeout(r, 700));
+  const m = await page2.evaluate(() => {
+    const ex = document.querySelector('#rbody [data-ex]');
+    const r = ex ? ex.getBoundingClientRect() : null;
+    return { scrollW: document.documentElement.scrollWidth, innerW: innerWidth,
+             exVisible: !!(r && r.width > 0 && r.right <= innerWidth + 1) };
+  });
+  layout.push({ w, ...m });
+  await page2.close();
+}
+t('no horizontal scroll at any width',
+  layout.every(l => l.scrollW <= l.innerW + 1),
+  layout.filter(l => l.scrollW > l.innerW + 1).map(l => l.w + 'px:' + l.scrollW).join(' '));
+t('the exclude control is reachable on a phone',
+  layout.every(l => l.exVisible),
+  layout.filter(l => !l.exVisible).map(l => l.w + 'px').join(' '));
+
 t('no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
 
 console.log('PASS ' + ok.length + '  FAIL ' + bad.length);

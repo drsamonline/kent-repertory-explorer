@@ -1,6 +1,6 @@
 # Enhancements
 
-**Status: all nineteen applied** (17 in 1.2.0, the last two in 1.3.0). What remains is what
+**Status: all twenty applied** (17 in 1.2.0, the last two in 1.3.0). What remains is what
 the work turned up along the way — listed honestly at the end.
 Everything below is achievable offline, with no internet and no external dependency: no library, no
 CDN, no service, no model. Where an item needed an algorithm, the algorithm is in the repo.
@@ -32,6 +32,7 @@ file — extending the app's own functions keeps the shipped build and its sourc
 | 17 | **Releases with icons** | `icon.ico` for the EXE, PNG sizes for the APK and manifest, `og.png` social card, `RELEASES.md` | `scripts/ico.py`, `scripts/icons.mjs` |
 | 18 | **Smaller payload** | The dataset re-encoded columnar (v2): parallel arrays, one concatenated link blob, no key names repeated on 98,000 nodes. **1,459,700 → 1,346,954 bytes gzipped (−7.7%)**; the page 2.04 MB → 1.90 MB | `pipeline/recompress.py` verifies all 74,480 rubrics decode identically before writing; the browser suite re-checks the counts |
 | 19 | **Scoring methods** | Three weightings (3·2·1, 1·1·1, 9·4·1) and an eliminative filter (grade 2+ in every rubric), with the formula printed on the screen and in every export | browser suite: the score moves with the weights, the header names the method, the export states it |
+| 20 | **Layout at every width** | The exclude control restored on phones; the analysis table fixed-layout so it cannot push its own buttons off-panel; the header, the wordmark and the search box reflow at 420/380 px; remedy names no longer break mid-word; large screens use their width. The landing page no longer scrolls sideways or jumps past its hero | browser suite: no horizontal scroll at six widths, exclude reachable at all six |
 
 ## Measured, not asserted
 

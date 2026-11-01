@@ -34,7 +34,7 @@
   --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --serif:"Charter","Bitstream Charter","Sitka Text",Cambria,Georgia,"Times New Roman",serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-  --wrap:1080px;
+  --wrap:clamp(1080px,74vw,1320px);
 }
 :root[data-theme="dark"]{
   --paper:#14110e; --paper2:#1b1712; --paper3:#221c16;
@@ -83,6 +83,14 @@ h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
 p{margin:0 0 18px}
 .lede{font-size:clamp(17px,1.7vw,20px);color:var(--ink2);max-width:56ch}
 
+/* large screens: 1080 px of content on a 1920 px display reads as a leaflet */
+@media(min-width:1600px){
+  h1{font-size:clamp(52px,3.3vw,68px)}
+  .lede{font-size:21px}
+  header.hero{padding:96px 0 72px}
+  section{padding:86px 0}
+}
+
 /* nav */
 nav{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--paper) 88%,transparent);
     backdrop-filter:blur(10px);border-bottom:1px solid var(--rule2)}
@@ -97,13 +105,32 @@ nav .sp{flex:1}
 nav a.lnk{font:500 14px/1 var(--sans);text-decoration:none;color:var(--ink2);padding:7px 9px;border-radius:3px}
 nav a.lnk:hover{color:var(--ink);background:var(--paper3)}
 @media(max-width:820px){nav a.lnk{display:none}}
+@media(max-width:420px){
+  /* the mark carries the identity; the wordmark and a full-width CTA do not fit */
+  nav .brand{display:none}
+  nav .btn.sm{font-size:13px;padding:9px 11px}
+}
+@media(max-width:560px){
+  nav .in{gap:8px;padding:9px 14px}
+  .brand small{display:none}
+  .brand{font-size:14px}
+  nav .btn.sm{padding:10px 12px;min-height:38px;white-space:nowrap}
+  #theme{width:38px;height:38px}
+  .label{font-size:11.5px}
+  .stamp{font-size:11px;right:-4px}
+  .guide{gap:6px}
+  .guide button{padding:9px 11px;font-size:12.5px}
+  .frame .stack{aspect-ratio:4/5}
+  .frame .note{font-size:11px}
+  .grid3 .c{padding:22px 0}
+}
 .btn{display:inline-flex;align-items:center;gap:8px;font:600 14.5px/1 var(--sans);text-decoration:none;
      padding:12px 18px;border-radius:3px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);
      transition:transform .12s ease,background .12s ease}
 .btn:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-1px)}
 .btn.ghost{background:transparent;color:var(--ink)}
 .btn.ghost:hover{background:var(--ink);color:var(--paper)}
-.btn.sm{padding:8px 13px;font-size:13px}
+.btn.sm{padding:9px 13px;font-size:13px;min-height:34px}
 #theme{width:34px;height:34px;display:grid;place-items:center;background:transparent;border:1px solid var(--rule2);
        border-radius:3px;color:var(--ink2);cursor:pointer;font-size:14px}
 #theme:hover{border-color:var(--ink);color:var(--ink)}
@@ -139,7 +166,7 @@ header.hero{padding:clamp(40px,6vw,76px) 0 clamp(34px,5vw,56px);border-bottom:1p
 .rx .g3{border-color:var(--accent);color:var(--accent);font-weight:700}
 .rx .g2{border-color:var(--rule2);color:var(--ink);font-style:italic}
 .stamp{position:absolute;right:-9px;top:-13px;transform:rotate(-6deg);border:2px solid var(--accent);color:var(--accent);
-       font:700 10px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:7px 10px;border-radius:2px;
+       font:700 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;padding:7px 10px;border-radius:2px;
        background:color-mix(in srgb,var(--paper) 86%,transparent);opacity:.95}
 .card .ft{padding:11px 16px;border-top:1px solid var(--rule2);font:500 11.5px/1.5 var(--sans);color:var(--ink3);
           display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -220,6 +247,8 @@ table.nums tr:last-child td{border-bottom:0}
 
 /* sources + releases */
 .two{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,4vw,56px)}
+.two>*{min-width:0}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media(max-width:900px){.two{grid-template-columns:1fr}}
 .note{font-size:15px;color:var(--ink2)}
 .note strong{color:var(--ink);font-weight:700}
@@ -240,10 +269,10 @@ blockquote{margin:0 0 18px;padding:2px 0 2px 16px;border-left:2px solid var(--ac
 .rel a.get:hover{border-color:var(--accent);color:var(--accent)}
 
 /* code */
-pre{margin:0 0 18px;background:var(--paper3);border:1px solid var(--rule2);border-radius:3px;padding:16px 18px;
+pre{max-width:100%;margin:0 0 18px;background:var(--paper3);border:1px solid var(--rule2);border-radius:3px;padding:16px 18px;
     overflow-x:auto;font:500 13px/1.75 var(--mono);color:var(--ink)}
 pre .c{color:var(--ink3)}
-code{font:500 .92em/1.4 var(--mono);background:var(--paper3);padding:1px 5px;border-radius:2px;border:1px solid var(--rule)}
+code{overflow-wrap:anywhere;font:500 .92em/1.4 var(--mono);background:var(--paper3);padding:1px 5px;border-radius:2px;border:1px solid var(--rule)}
 
 /* closing */
 .close{background:var(--band);color:var(--band-ink);border-top:1px solid var(--band-rule)}
@@ -434,7 +463,7 @@ footer a:hover{color:var(--accent);text-decoration:underline}
       <h2>The numbers, measured</h2>
       <span class="label">From the embedded dataset</span>
     </div>
-    <table class="nums">
+    <div class="tw"><table class="nums">
       <thead><tr><th scope="col">What</th><th scope="col" style="text-align:right">Count</th></tr></thead>
       <tbody>
         <tr><td>Rubrics</td><td class="v">74,480</td></tr>
@@ -446,7 +475,7 @@ footer a:hover{color:var(--accent);text-decoration:underline}
         <tr><td>Runtime dependencies</td><td class="v">0</td></tr>
         <tr><td>Tests · audit</td><td class="v small">14 + 30 passing · 82 checks</td></tr>
       </tbody>
-    </table>
+    </table></div>
   </div>
 </section>
 
@@ -533,7 +562,7 @@ python3 -m http.server -d docs 8000
       <div class="sec-head"><h2>Deep links</h2></div>
       <p class="note">The app answers to its hash, so a scene can be linked, bookmarked or driven from a page
         like this one — offline, with no router and no dependency:</p>
-      <table class="nums" style="margin-top:6px">
+      <div class="tw"><table class="nums" style="margin-top:6px">
         <tbody>
           <tr><td><code>#q=anxiety+night</code></td><td class="v small">run a search</td></tr>
           <tr><td><code>#tab=analysis</code></td><td class="v small">open a panel</td></tr>
@@ -541,7 +570,7 @@ python3 -m http.server -d docs 8000
           <tr><td><code>#remedy=Ars</code></td><td class="v small">every rubric for a remedy</td></tr>
           <tr><td><code>#rubric=1234</code></td><td class="v small">one rubric, in full</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <p class="note" style="margin-top:16px">Panels: <code>search</code>, <code>browse</code>,
         <code>case</code>, <code>analysis</code>, <code>matrix</code>. Scenes: <code>search</code>,
         <code>narrow</code>, <code>case</code>, <code>analysis</code>.</p>

@@ -6,12 +6,42 @@
 - **Scoring methods, with the arithmetic on the screen.** The analysis now offers three weightings —
   **3·2·1** (the printed grade, summed), **1·1·1** (every rubric counts once) and **9·4·1** (the grade,
   squared) — and an **eliminative** filter that keeps only remedies holding grade 2 or better in every
-  rubric of the case. The formula is printed under the control, the score column header names it, and
+  rubric of the case. The formula is printed under the control, the note under the control names it, and
   every export states which one produced the numbers.
   The presets are named by what they compute, not by a school: see `ENHANCEMENTS.md` for why.
 - **`scripts/audit.py`** — 81 checks that hold the repository to its own claims: every number against
   the embedded dataset, every local link and asset, the manifest and service-worker file lists, the
   licence statements, the build stamps, and that nothing is fetched from the network at runtime.
+
+### UI, at both ends of the range
+Measured at 320, 430, 768, 1024, 1440 and 1920 px, not eyeballed. The browser suite now asserts
+the first two of these on every run.
+
+- **The exclude control disappeared on a phone.** The app hid the first and last columns of the
+  analysis table below 780 px, which removed the only way to exclude a remedy. The rank column can
+  go; the control cannot. Restored, and the rank stays hidden.
+- **The analysis table pushed its own controls off the panel** between 1024 and 1440 px — the exclude
+  button sat past the edge. The table is now `table-layout: fixed`, so the columns share the panel at
+  every width, and the score bar (decoration) is the column that gives way.
+- **The header wrapped to three rows at 320 px.** The theme button now stays on the first row, the
+  search box takes its own row below 420 px, and the wordmark gives way below 380 px — the mark
+  carries the identity.
+- **Remedy names broke mid-word** ("Arsenicu m Album") because the app set `word-break: break-word`
+  on that cell. Names now break on spaces; below 560 px the long name gives way to the abbreviation.
+- **Large screens wasted a third of the pane.** At 1,500 px and above the rubric list and toolbar are
+  capped at 940 px and centred, and the search box at 640 px.
+- **The landing page jumped past its own hero on load.** The embedded app focused its search box and
+  called `scrollIntoView` on the selected result — both of which scroll the *parent* page when the app
+  is in a frame. Both are now guarded on `window.self === window.top`, so the demo no longer yanks the
+  visitor down the page.
+- **The landing page scrolled sideways at 430 and 320 px.** Long lines in the code block and the
+  number tables forced it; the grids can now shrink (`min-width: 0`), the tables scroll inside their
+  own container, and the code block wraps.
+- **Landing page on large screens**: the content column grows to 1,320 px and the hero scales with it,
+  instead of 1,080 px of text on a 1,920 px display.
+- Touch targets: checkboxes 13 → 18 px and selects 26 → 34 px below 900 px; the mobile tab strip
+  27 → 38 px; the phone-only floating backup strip no longer covers the status line (it is hidden
+  below 560 px — the app's own Export covers the case, and a full-device backup is a desk task).
 
 ### Changed
 - **The embedded dataset is re-encoded** (v1 tree → v2 columnar: parallel arrays, one concatenated
