@@ -40,6 +40,9 @@ its source stay in step.
 ### Fixed
 - The app opened in dark mode even on a device set to light, because `themeName()` defaulted to
   `'dark'` instead of asking `prefers-color-scheme`.
+- The landing page's guided scenes leaked state into each other: pressing “a one-remedy rubric” left
+  the narrow-only filter on, so “build a case” afterwards built two rubrics instead of three. Each
+  scene now resets the filters first.
 - The floating tools strip hardcoded `#111` and stayed dark in the light and high-contrast themes.
 
 ### Measured

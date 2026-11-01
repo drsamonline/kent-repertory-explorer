@@ -960,6 +960,15 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   }
 
   function clearCase() { caseList = []; saveCase(); refreshRight(); }
+  /* Each scene is independent: pressing "a one-remedy rubric" must not leave a
+     filter on that quietly changes what "build a case" builds. */
+  function resetFilters() {
+    narrowOnly = false; chapterFilter = null;
+    var cb = document.getElementById('narrow'); if (cb) cb.checked = false;
+    var rng = document.getElementById('narrowN'); if (rng) rng.disabled = true;
+    if (window.showFilterChip) { try { showFilterChip(); } catch (e) {} }
+  }
+
 
   var TABS = { search: 'search', browse: 'browse', case: 'case', analysis: 'an', an: 'an', matrix: 'mx', mx: 'mx' };
 
@@ -968,6 +977,8 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     if (!h) return;
     var p = new URLSearchParams(h);
     var demo = p.get('demo'), q = p.get('q'), tab = p.get('tab');
+
+    if (demo) resetFilters();
 
     if (demo === 'search') {
       setQ('anxiety night'); setTab('search');
